@@ -20,8 +20,8 @@ jobs:
       runs-on: ubuntu-latest
       env:
         myStringInBraces: ${{ 'It''s open source!' }}
-        STRAIGHT_TARGET: ${{ vars.docker_target }}
-        MY_ENV_VAR: ${{ vars.docker_target == '' && 'found_empty' || vars.docker_target }}
+        STRAIGHT_TARGET: ${{ env.docker_target }}
+        MY_ENV_VAR: ${{ env.docker_target == '' && 'found_empty' || env.docker_target }}
       steps:
         - run: echo "Mock CI Test Job"
         - run: echo $myStringInBraces
