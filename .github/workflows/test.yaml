@@ -20,7 +20,7 @@ jobs:
     call_docker_job_after_ci_pass:
       name: Trigger Docker Workflow
       needs: mock_succeeded_ci_test_job
-      uses: boromir674/automated-workflows/.github/workflows/workflow.yml@main
+      uses: boromir674/automated-workflows/.github/workflows/docker.yml@main
       with:
         DOCKER_USER: ${{ secrets.DOCKER_USER }}
         acceptance_policy: 3
