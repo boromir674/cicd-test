@@ -31,7 +31,7 @@ jobs:
             echo "MY_ENV_VAR: ${MY_ENV_VAR}"
             echo "STRAIGHT_TARGET: ${STRAIGHT_TARGET}"
 
-            this_target="${docker_target}"
+            this_target="${docker_target:-found_empty}"
             echo "this_target: ${this_target}"
             
             this_var=${{ vars.docker_target == '' && 'found_empty' || vars.docker_target }}
