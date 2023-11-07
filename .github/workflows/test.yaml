@@ -45,32 +45,32 @@ jobs:
         DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
       # secrets: inherit
 
-    # verify_docker_image_pushed:
-    # # ASSERT ALL: needed Job called and passed & this Job exits with 0
-    #   runs-on: ubuntu-latest
-    #   needs: call_docker_job_after_ci_pass
-    #   if: always()
-    #   steps:
-    #     - name: "Assert CI Tests passed (or test code is wrong)"
-    #       run: |
-    #         if [ ${{ needs.mock_succeeded_ci_test_job.result }} -ne 0 ]; then
-    #           echo "[ERROR] Test Scenario Incorrect Prerequisites NOT satisfied"
-    #           echo "[DEBUG] Test assumes succeeded CI Test Job, but our Mock CI Tests failed!"
-    #           echo "Exiting with 1"
-    #           exit 1
-    #         fi
-    #     - run: echo ${{ needs.call_docker_jon.outputs.IMAGE_REF }}
-    #     - run: echo "IMAGE_REF=${{ needs.call_docker_jon.outputs.IMAGE_REF }}" >> $GITHUB_ENV
-    #     - name: Retrieve Layers of ${{ needs.call_docker_jon.outputs.IMAGE_REF }}
-    #       run: |
-    #         docker manifest inspect "$IMAGE_REF" > docker_layers.json
-    #         command_exit_status=$?
-    #         if [ $command_exit_status -eq 0 ]; then
-    #           echo "PASS: Verify Docker Image "${IMAGE_REF}" was Pushed to DockerHub"
-    #         else
-    #           echo "FAIL: Verify Docker Image "${IMAGE_REF}" was Pushed to DockerHub"
-    #           exit 1
-    #         fi
+    verify_docker_image_pushed:
+    # ASSERT ALL: needed Job called and passed & this Job exits with 0
+      runs-on: ubuntu-latest
+      needs: call_docker_job_after_ci_pass
+      if: always()
+      steps:
+        - name: "Assert CI Tests passed (or test code is wrong)"
+          run: |
+            if [ ${{ needs.mock_succeeded_ci_test_job.result }} -ne 0 ]; then
+              echo "[ERROR] Test Scenario Incorrect Prerequisites NOT satisfied"
+              echo "[DEBUG] Test assumes succeeded CI Test Job, but our Mock CI Tests failed!"
+              echo "Exiting with 1"
+              exit 1
+            fi
+        - run: echo ${{ needs.call_docker_jon.outputs.IMAGE_REF }}
+        - run: echo "IMAGE_REF=${{ needs.call_docker_jon.outputs.IMAGE_REF }}" >> $GITHUB_ENV
+        - name: Retrieve Layers of ${{ needs.call_docker_jon.outputs.IMAGE_REF }}
+          run: |
+            docker manifest inspect "$IMAGE_REF" > docker_layers.json
+            command_exit_status=$?
+            if [ $command_exit_status -eq 0 ]; then
+              echo "PASS: Verify Docker Image "${IMAGE_REF}" was Pushed to DockerHub"
+            else
+              echo "FAIL: Verify Docker Image "${IMAGE_REF}" was Pushed to DockerHub"
+              exit 1
+            fi
 
   # # TEST Case 2 - CI Fails
 
