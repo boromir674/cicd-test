@@ -30,7 +30,7 @@ jobs:
             this_target="${docker_target:-found_empty}"
             echo "this_target: ${this_target}"
             echo "my null as empty string/var: $myNull"
-            echo "my context var empty string (null) as string: <v>${{ vars.EMPTY_STRING }}</v>"
+            echo "my context var empty string (null) as string: "<v>${{ vars.EMPTY_STRING }}</v>
            
 
 
