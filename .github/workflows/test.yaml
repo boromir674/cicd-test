@@ -8,6 +8,10 @@ on:
       - "*"
 
 
+env:
+  docker_target: ""
+
+
 jobs:
 
   # TEST Case 1 - CI Passes
@@ -16,12 +20,14 @@ jobs:
       runs-on: ubuntu-latest
       env:
         myStringInBraces: ${{ 'It''s open source!' }}
+        MY_ENV_VAR: ${{ vars.docker_target == '' && 'found_empty' || vars.docker_target }}
       steps:
         - run: echo "Mock CI Test Job"
         - run: echo $myStringInBraces
         - name: a
           run: |
             echo $myStringInBraces
+            echo "MY_ENV_VAR: ${MY_ENV_VAR}"
 
 
     # call_docker_job_after_ci_pass:
