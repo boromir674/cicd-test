@@ -61,9 +61,12 @@ jobs:
               echo "Exiting with 1"
               exit 1
             fi
-        - run: "echo Allo Ref: ${allo_ref}"
+
         - run: echo ${{ needs.call_docker_job_after_ci_pass.outputs.image_ref }}
+        - run: echo ${{ needs.call_docker_job_after_ci_pass.outputs.IMAGE_REF }}
+
         - run: echo "IMAGE_REF=${{ needs.call_docker_job_after_ci_pass.outputs.image_ref }}" >> $GITHUB_ENV
+
         - name: Retrieve Layers of ${{ needs.call_docker_job_after_ci_pass.outputs.image_ref }}
           run: |
             docker manifest inspect "$IMAGE_REF" > docker_layers.json
