@@ -9,7 +9,7 @@ on:
 
 
 env:
-  docker_target: "my_target"
+  docker_target: ""
 
 
 jobs:
