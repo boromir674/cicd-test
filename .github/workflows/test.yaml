@@ -30,23 +30,20 @@ jobs:
             this_target="${docker_target:-found_empty}"
             echo "this_target: ${this_target}"
             echo "my null as empty string/var: $myNull"
-            echo "my context var empty string (null) as string: <v>${{ vars.EMPTY_STRING }}</v>"
-           
+            # echo "my context var empty string (null) as string: <v>${{ vars.EMPTY_STRING }}</v>"
 
-
-
-    # call_docker_job_after_ci_pass:
-    #   name: Trigger Docker Workflow
-    #   needs: mock_succeeded_ci_test_job
-    #   uses: boromir674/automated-workflows/.github/workflows/docker.yml@test
-    #   with:
-    #     DOCKER_USER: ${{ vars.DOCKER_USER }}
-    #     acceptance_policy: 3
-    #     image_slug: "cicd-test"
-    #     image_tag: "latest"
-    #   secrets:
-    #     DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-    #   # secrets: inherit
+    call_docker_job_after_ci_pass:
+      name: Trigger Docker Workflow
+      needs: mock_succeeded_ci_test_job
+      uses: boromir674/automated-workflows/.github/workflows/docker.yml@test
+      with:
+        DOCKER_USER: ${{ vars.DOCKER_USER }}
+        acceptance_policy: 3
+        image_slug: "cicd-test"
+        image_tag: "latest"
+      secrets:
+        DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+      # secrets: inherit
 
     # verify_docker_image_pushed:
     # # ASSERT ALL: needed Job called and passed & this Job exits with 0
