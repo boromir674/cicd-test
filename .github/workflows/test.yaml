@@ -22,7 +22,7 @@ jobs:
       needs: mock_succeeded_ci_test_job
       uses: boromir674/automated-workflows/.github/workflows/docker.yml@main
       with:
-        DOCKER_USER: ${{ secrets.DOCKER_USER }}
+        DOCKER_USER: ${{ vars.DOCKER_USER }}
         acceptance_policy: 3
         image_slug: "cicd-test"
         image_tag: "latest"
