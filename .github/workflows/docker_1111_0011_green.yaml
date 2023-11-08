@@ -86,9 +86,6 @@ jobs:
       steps:
         - name: a
           run: echo I will be skipped anyways
-      outputs:
-        # success, failure, or cancelled
-        CI_TESTS_JOB_RESULT: ${{ job.status }}
 
     call_docker_job_after_ci_skip:
       needs: mock_skipped_ci_test_job
@@ -109,21 +106,10 @@ jobs:
       needs: call_docker_job_after_ci_skip
       if: always()
       steps:
-        - run: ${{ contains(fromJSON('["skipped", "cancelled"]'), needs.mock_skipped_ci_test_job.result) }}
-        - run: echo ${{ needs.mock_skipped_ci_test_job.outputs.CI_TESTS_JOB_RESULT }}
-        - run: echo ${{ contains(needs.mock_skipped_ci_test_job.result, 'skipped') }}
-        - run: echo ${{ !contains(needs.mock_skipped_ci_test_job.result, 'skipped') }}
-        - run: echo ${{ contains(needs.mock_skipped_ci_test_job.result, 'skip') }}
-        - run: echo ${{ !contains(needs.mock_skipped_ci_test_job.result, 'skip') }}
-        - run: echo ${{ contains(needs.mock_skipped_ci_test_job.result, 'cancelled') }}
-        - run: echo ${{ !contains(needs.mock_skipped_ci_test_job.result, 'cancelled') }}
-        - run: echo ${{ contains(needs.mock_skipped_ci_test_job.result, 'success') }}
-        - run: echo ${{ !contains(needs.mock_skipped_ci_test_job.result, 'success') }}
-        - run: echo ${{ contains(needs.mock_skipped_ci_test_job.result, 'succeeded') }}
-        - run: echo ${{ !contains(needs.mock_skipped_ci_test_job.result, 'succeeded') }}
+          # needs.<job_id>.result: success, failure, cancelled, or skipped
         - name: "Assert CI Tests were Skipped (or test scenario is invalid)"
           run: |
-            if [ "true" == ${{ contains(needs.mock_skipped_ci_test_job.result, 'skipped') || contains(needs.mock_skipped_ci_test_job.result, 'cancelled') }} ]; then
+            if [ "true" == ${{ contains(fromJSON('["success", "failure"]'), needs.mock_skipped_ci_test_job.result) }} ]; then
               echo "[ERROR] Test Scenario Incorrect: Prerequisites NOT satisfied"
               echo "[DEBUG] Test assumes succeeded CI Test Job were skipped, but our Mock CI Tests were NOT skipped!"
               echo " --> Prematurely, exiting Test Case with 1!"
