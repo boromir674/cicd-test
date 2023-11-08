@@ -106,16 +106,16 @@ jobs:
       needs: call_docker_job_after_ci_skip
       if: always()
       steps:
-        - run: echo contains(needs.mock_skipped_ci_test_job.result, 'skipped')
-        - run: echo !contains(needs.mock_skipped_ci_test_job.result, 'skipped')
-        - run: echo contains(needs.mock_skipped_ci_test_job.result, 'skip')
-        - run: echo !contains(needs.mock_skipped_ci_test_job.result, 'skip')
-        - run: echo contains(needs.mock_skipped_ci_test_job.result, 'cancelled')
-        - run: echo !contains(needs.mock_skipped_ci_test_job.result, 'cancelled')
-        - run: echo contains(needs.mock_skipped_ci_test_job.result, 'success')
-        - run: echo !contains(needs.mock_skipped_ci_test_job.result, 'success')
-        - run: echo contains(needs.mock_skipped_ci_test_job.result, 'succeeded')
-        - run: echo !contains(needs.mock_skipped_ci_test_job.result, 'succeeded')
+        - run: echo ${{ contains(needs.mock_skipped_ci_test_job.result, 'skipped') }}
+        - run: echo ${{ !contains(needs.mock_skipped_ci_test_job.result, 'skipped') }}
+        - run: echo ${{ contains(needs.mock_skipped_ci_test_job.result, 'skip') }}
+        - run: echo ${{ !contains(needs.mock_skipped_ci_test_job.result, 'skip') }}
+        - run: echo ${{ contains(needs.mock_skipped_ci_test_job.result, 'cancelled') }}
+        - run: echo ${{ !contains(needs.mock_skipped_ci_test_job.result, 'cancelled') }}
+        - run: echo ${{ contains(needs.mock_skipped_ci_test_job.result, 'success') }}
+        - run: echo ${{ !contains(needs.mock_skipped_ci_test_job.result, 'success') }}
+        - run: echo ${{ contains(needs.mock_skipped_ci_test_job.result, 'succeeded') }}
+        - run: echo ${{ !contains(needs.mock_skipped_ci_test_job.result, 'succeeded') }}
         - name: "Assert CI Tests were Skipped (or test scenario is invalid)"
           run: |
             if [ "true" == ${{ contains(needs.mock_skipped_ci_test_job.result, 'skipped') || contains(needs.mock_skipped_ci_test_job.result, 'cancelled') }} ]; then
