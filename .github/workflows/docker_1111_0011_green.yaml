@@ -86,6 +86,8 @@ jobs:
       steps:
         - name: a
           run: echo I will be skipped anyways
+      outputs:
+        CI_TESTS_JOB_RESULT: ${{ .result }}
 
     call_docker_job_after_ci_skip:
       needs: mock_skipped_ci_test_job
@@ -106,6 +108,7 @@ jobs:
       needs: call_docker_job_after_ci_skip
       if: always()
       steps:
+        - run: echo ${{ needs.mock_skipped_ci_test_job.outputs.CI_TESTS_JOB_RESULT }}
         - run: echo ${{ contains(needs.mock_skipped_ci_test_job.result, 'skipped') }}
         - run: echo ${{ !contains(needs.mock_skipped_ci_test_job.result, 'skipped') }}
         - run: echo ${{ contains(needs.mock_skipped_ci_test_job.result, 'skip') }}
