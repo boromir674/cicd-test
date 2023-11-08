@@ -54,7 +54,7 @@ jobs:
       steps:
         - name: "Assert CI Tests passed (or test code is wrong)"
           run: |
-            if [ ${{ needs.mock_succeeded_ci_test_job.result }} -ne 0 ]; then
+            if [ "true" == ${{ needs.mock_succeeded_ci_test_job.result != 'success' }} ]; then
               echo "[ERROR] Test Scenario Incorrect: Prerequisites NOT satisfied"
               echo "[DEBUG] Test assumes succeeded CI Test Job, but our Mock CI Tests failed!"
               echo "Exiting with 1"
