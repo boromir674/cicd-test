@@ -87,7 +87,8 @@ jobs:
         - name: a
           run: echo I will be skipped anyways
       outputs:
-        CI_TESTS_JOB_RESULT: ${{ jobresult }}
+        # success, failure, or cancelled
+        CI_TESTS_JOB_RESULT: ${{ job.status }}
 
     call_docker_job_after_ci_skip:
       needs: mock_skipped_ci_test_job
