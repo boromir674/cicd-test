@@ -10,7 +10,7 @@ on:
 
 env:
   docker_target: ""
-
+  case_0011_ci_tests_skiped: true
 
 jobs:
 
@@ -80,10 +80,19 @@ jobs:
 
 
   # TEST Case 2 - CI Skipped
+    setup:
+      runs-on: ubuntu-latest
+      outputs:
+        SHOULD_SKIP_CI_TESTS: ${{ steps.check_if_ci_tests_should_be_skipped.outputs.SHOULD_SKIP_CI_TESTS }}
+      steps:
+        - name: check_if_ci_tests_should_be_skipped
+          id: check_if_ci_tests_should_be_skipped
+          run: echo "SHOULD_SKIP_CI_TESTS=true" >> $GITHUB_OUTPUT
 
     mock_skipped_ci_test_job:
       runs-on: ubuntu-latest
-      if: false
+      needs: setup
+      if: ${{ needs.setup.outputs.SHOULD_SKIP_CI_TESTS != 'true' }}
       steps:
         - name: a
           run: echo I will be skipped anyways
@@ -107,10 +116,10 @@ jobs:
       needs: call_docker_job_after_ci_skip
       if: always()
       steps:
-          # needs.<job_id>.result: success, failure, cancelled, or skipped
+          # ONLY DIRECT DEPENDENCIES: .<job_id>.result: success, failure, cancelled, or skipped
         - name: "Assert CI Tests were Skipped (or test scenario is invalid)"
           run: |
-            if [ "true" == ${{ contains(fromJSON('["success", "failure"]'), needs.mock_skipped_ci_test_job.result) }} ]; then
+            if [ "true" == ${{ needs.setup.outputs.SHOULD_SKIP_CI_TESTS }} ]; then
               echo "[ERROR] Test Scenario Incorrect: Prerequisites NOT satisfied"
               echo "[DEBUG] Test assumes succeeded CI Test Job were skipped, but our Mock CI Tests were NOT skipped!"
               echo " --> Prematurely, exiting Test Case with 1!"
