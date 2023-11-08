@@ -25,7 +25,7 @@ jobs:
       steps:
         - name: check_if_ci_tests_should_be_skipped
           id: check_if_ci_tests_should_be_skipped
-          run: echo "SHOULD_SKIP_CI_TESTS=${{ env.CI_TESTS_00_PASS == 'false' }}" >> $GITHUB_OUTPUT
+          run: echo "SHOULD_SKIP_CI_TESTS=${{ env.CI_TESTS_00_RUN == 'false' }}" >> $GITHUB_OUTPUT
       outputs:
         SHOULD_SKIP_CI_TESTS: ${{ steps.check_if_ci_tests_should_be_skipped.outputs.SHOULD_SKIP_CI_TESTS }}
 
@@ -59,7 +59,7 @@ jobs:
           # ONLY DIRECT DEPENDENCIES: .<job_id>.result: success, failure, cancelled, or skipped
         - name: "Assert CI Tests were Skipped (or test scenario is invalid)"
           run: |
-            if [ "true" == ${{ env.CI_TESTS_00_RUN != 'true' }} ]; then
+            if [ "true" == ${{ env.CI_TESTS_00_RUN != true }} ]; then
               echo "[ERROR] Test Scenario Incorrect: Prerequisites NOT satisfied"
               echo "[DEBUG] Test assumes succeeded CI Test Job were skipped, but our Mock CI Tests were NOT skipped!"
               echo " --> Prematurely, exiting Test Case with 1!"

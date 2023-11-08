@@ -50,7 +50,7 @@ jobs:
       steps:
         - name: "Check Test Scenario Prerequisites Satisfied: Assert CI Tests Triggered, but Failed"
           run: |
-            if [ ${CI_TESTS_RUN != 'true' || ${CI_TESTS_PASS} != 'false' }} ]; then
+            if [ ${CI_TESTS_RUN} != 'true' || ${CI_TESTS_PASS} != 'false' }} ]; then
               echo "[ERROR] Test Scenario Incorrect: Prerequisites NOT satisfied"
               echo "[DEBUG] Test assumes CI Test Job Triggered, and Failed."
               echo "Prematurely, exiting Test Case with 1!"
