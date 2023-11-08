@@ -33,7 +33,7 @@ jobs:
       steps:
         - name: "Exit Job with emulated 'success' result"
           run: |
-            if [ ${{ needs.setup_case_1111.outputs.SHOULD_PASS_CI_TESTS != 'true' }} ]; then
+            if [ "true" == ${{ needs.setup_case_1111.outputs.SHOULD_PASS_CI_TESTS != 'true' }} ]; then
               echo "[FATAL] Test Scenario Incorrect: Prerequisites NOT satisfied"
               echo "[FIX] Set the SHOULD_PASS_CI_TESTS output to 'true' in the setup_case_1111 Job"
               echo "Prematurely, exiting Test Case with 1!"
@@ -125,6 +125,11 @@ jobs:
       if: always()
       steps:
           # ONLY DIRECT DEPENDENCIES: .<job_id>.result: success, failure, cancelled, or skipped
+        - run: echo ${{ needs.setup_case_0011.outputs.SHOULD_SKIP_CI_TESTS }}
+        - run: echo ${{ needs.setup_case_0011.outputs.SHOULD_SKIP_CI_TESTS == 'true' }}
+        - run: echo ${{ needs.setup_case_0011.outputs.SHOULD_SKIP_CI_TESTS != 'false' }}
+        - run: echo ${{ needs.setup_case_0011.outputs.SHOULD_SKIP_CI_TESTS == 'false' }}
+        - run: echo ${{ needs.setup_case_0011.outputs.SHOULD_SKIP_CI_TESTS != 'true' }}
         - name: "Assert CI Tests were Skipped (or test scenario is invalid)"
           run: |
             if [ "true" == ${{ needs.setup_case_0011.outputs.SHOULD_SKIP_CI_TESTS != 'true' }} ]; then
