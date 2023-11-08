@@ -1,4 +1,4 @@
-name: "RED: Docker 0101"
+name: "RED: Docker Pol 1: 0101"
 
 on:
   push:
@@ -50,7 +50,7 @@ jobs:
       steps:
         - name: "Check Test Scenario Prerequisites Satisfied: Assert CI Tests Triggered, but Failed"
           run: |
-            if [ "true" == ${{ env.CI_TESTS_RUN != 'true' || env.CI_TESTS_PASS != 'true' }} ]; then
+            if [ ${CI_TESTS_RUN != 'true' || ${CI_TESTS_PASS} != 'false' }} ]; then
               echo "[ERROR] Test Scenario Incorrect: Prerequisites NOT satisfied"
               echo "[DEBUG] Test assumes CI Test Job Triggered, and Failed."
               echo "Prematurely, exiting Test Case with 1!"
