@@ -10,7 +10,9 @@ on:
 
 env:
   docker_target: ""
+  case_1111_ci_tests_pass: true
   case_0011_ci_tests_skiped: true
+
 
 jobs:
 
@@ -27,13 +29,14 @@ jobs:
     mock_succeeded_ci_test_job:
       runs-on: ubuntu-latest
       needs: setup_case_1111
+      if: always()
       env:
         myStringInBraces: ${{ 'It''s open source!' }}
         myNull: ${{ null }}
       steps:
         - name: "Exit Job with emulated 'success' result"
           run: |
-            if [ "true" == ${{ needs.setup_case_1111.outputs.SHOULD_PASS_CI_TESTS != 'true' }} ]; then
+            if [ "true" != ${case_1111_ci_tests_pass} ]; then
               echo "[FATAL] Test Scenario Incorrect: Prerequisites NOT satisfied"
               echo "[FIX] Set the SHOULD_PASS_CI_TESTS output to 'true' in the setup_case_1111 Job"
               echo "Prematurely, exiting Test Case with 1!"
@@ -62,7 +65,7 @@ jobs:
       steps:
         - name: "Assert CI Tests passed (or test code is wrong)"
           run: |
-            if [ "true" == ${{ needs.setup_case_1111.outputs.SHOULD_PASS_CI_TESTS != 'true' }} ]; then
+            if [ "true" == ${{ env.case_1111_ci_tests_pass != 'true' }} ]; then
               echo "[ERROR] Test Scenario Incorrect: Prerequisites NOT satisfied"
               echo "[DEBUG] Test assumes succeeded CI Test Job, but our Mock CI Tests failed!"
               echo JOB RESULTS is ${{ needs.mock_succeeded_ci_test_job.result }}
@@ -95,7 +98,7 @@ jobs:
       steps:
         - name: check_if_ci_tests_should_be_skipped
           id: check_if_ci_tests_should_be_skipped
-          run: echo "SHOULD_SKIP_CI_TESTS=true" >> $GITHUB_OUTPUT
+          run: echo "SHOULD_SKIP_CI_TESTS=$case_0011_ci_tests_skiped" >> $GITHUB_OUTPUT
 
     mock_skipped_ci_test_job:
       runs-on: ubuntu-latest
@@ -132,7 +135,7 @@ jobs:
         - run: echo ${{ needs.setup_case_0011.outputs.SHOULD_SKIP_CI_TESTS != 'true' }}
         - name: "Assert CI Tests were Skipped (or test scenario is invalid)"
           run: |
-            if [ "true" == ${{ needs.setup_case_0011.outputs.SHOULD_SKIP_CI_TESTS != 'true' }} ]; then
+            if [ "true" == ${{ env.case_0011_ci_tests_skiped != 'true' }} ]; then
               echo "[ERROR] Test Scenario Incorrect: Prerequisites NOT satisfied"
               echo "[DEBUG] Test assumes succeeded CI Test Job were skipped, but our Mock CI Tests were NOT skipped!"
               echo " --> Prematurely, exiting Test Case with 1!"
