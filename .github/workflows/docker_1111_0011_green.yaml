@@ -15,22 +15,30 @@ env:
 jobs:
 
   # TEST Case 1 - CI Passes
+    setup_case_1111:
+      runs-on: ubuntu-latest
+      outputs:
+        SHOULD_PASS_CI_TESTS: ${{ steps.check_if_ci_tests_should_pass.outputs.SHOULD_PASS_CI_TESTS }}
+      steps:
+        - name: check_if_ci_tests_should_pass
+          id: check_if_ci_tests_should_pass
+          run: echo "SHOULD_PASS_CI_TESTS=true" >> $GITHUB_OUTPUT
 
     mock_succeeded_ci_test_job:
       runs-on: ubuntu-latest
+      needs: setup_case_1111
       env:
         myStringInBraces: ${{ 'It''s open source!' }}
         myNull: ${{ null }}
       steps:
-        - run: echo "Mock CI Test Job"
-        - run: echo $myStringInBraces
-        - name: a
+        - name: "Exit Job with emulated 'success' result"
           run: |
-            echo $myStringInBraces
-            this_target="${docker_target:-found_empty}"
-            echo "this_target: ${this_target}"
-            echo "my null as empty string/var: $myNull"
-            # echo "my context var empty string (null) as string: <v>${{ vars.EMPTY_STRING }}</v>"
+            if [ ${{ needs.setup_case_1111.outputs.SHOULD_PASS_CI_TESTS != 'true' }} ]; then
+              echo "[FATAL] Test Scenario Incorrect: Prerequisites NOT satisfied"
+              echo "[FIX] Set the SHOULD_PASS_CI_TESTS output to 'true' in the setup_case_1111 Job"
+              echo "Prematurely, exiting Test Case with 1!"
+              exit 1
+            fi
 
     call_docker_job_after_ci_pass:
       name: Trigger Docker Workflow
@@ -54,7 +62,7 @@ jobs:
       steps:
         - name: "Assert CI Tests passed (or test code is wrong)"
           run: |
-            if [ "true" == ${{ needs.mock_succeeded_ci_test_job.result != 'success' }} ]; then
+            if [ "true" == ${{ needs.setup_case_1111.outputs.SHOULD_PASS_CI_TESTS != 'true' }} ]; then
               echo "[ERROR] Test Scenario Incorrect: Prerequisites NOT satisfied"
               echo "[DEBUG] Test assumes succeeded CI Test Job, but our Mock CI Tests failed!"
               echo JOB RESULTS is ${{ needs.mock_succeeded_ci_test_job.result }}
@@ -80,7 +88,7 @@ jobs:
 
 
   # TEST Case 2 - CI Skipped
-    setup:
+    setup_case_0011:
       runs-on: ubuntu-latest
       outputs:
         SHOULD_SKIP_CI_TESTS: ${{ steps.check_if_ci_tests_should_be_skipped.outputs.SHOULD_SKIP_CI_TESTS }}
@@ -91,11 +99,11 @@ jobs:
 
     mock_skipped_ci_test_job:
       runs-on: ubuntu-latest
-      needs: setup
-      if: ${{ needs.setup.outputs.SHOULD_SKIP_CI_TESTS != 'true' }}
+      needs: setup_case_0011
+      if: ${{ needs.setup_case_0011.outputs.SHOULD_SKIP_CI_TESTS != 'true' }}
       steps:
-        - name: a
-          run: echo I will be skipped anyways
+        - name: If I run then the test is wrong
+          run: exit 1
 
     call_docker_job_after_ci_skip:
       needs: mock_skipped_ci_test_job
@@ -119,7 +127,7 @@ jobs:
           # ONLY DIRECT DEPENDENCIES: .<job_id>.result: success, failure, cancelled, or skipped
         - name: "Assert CI Tests were Skipped (or test scenario is invalid)"
           run: |
-            if [ "true" == ${{ needs.setup.outputs.SHOULD_SKIP_CI_TESTS }} ]; then
+            if [ "true" == ${{ needs.setup_case_0011.outputs.SHOULD_SKIP_CI_TESTS != 'true' }} ]; then
               echo "[ERROR] Test Scenario Incorrect: Prerequisites NOT satisfied"
               echo "[DEBUG] Test assumes succeeded CI Test Job were skipped, but our Mock CI Tests were NOT skipped!"
               echo " --> Prematurely, exiting Test Case with 1!"
