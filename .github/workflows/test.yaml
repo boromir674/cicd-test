@@ -1,4 +1,4 @@
-name: Test CI/CD Pipeline
+name: Test Docker Policy (3) 'CI Cont Delivery'
 
 on:
   push:
@@ -40,7 +40,7 @@ jobs:
         DOCKER_USER: ${{ vars.DOCKER_USER }}
         acceptance_policy: 3
         image_slug: "cicd-test"
-        image_tag: "latest"
+        image_tag: "1111"
       secrets:
         DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
       # secrets: inherit
@@ -56,7 +56,7 @@ jobs:
         - name: "Assert CI Tests passed (or test code is wrong)"
           run: |
             if [ ${{ needs.mock_succeeded_ci_test_job.result }} -ne 0 ]; then
-              echo "[ERROR] Test Scenario Incorrect Prerequisites NOT satisfied"
+              echo "[ERROR] Test Scenario Incorrect: Prerequisites NOT satisfied"
               echo "[DEBUG] Test assumes succeeded CI Test Job, but our Mock CI Tests failed!"
               echo "Exiting with 1"
               exit 1
@@ -78,28 +78,82 @@ jobs:
               exit 1
             fi
 
-  # # TEST Case 2 - CI Fails
+  # TEST Case 2 - CI Fails
 
-  #   call_docker_job_after_ci_fail:
-  #     uses: boromir674/automated-workflows/.github/workflows/workflow.yml@main
-  #     name: Trigger Docker Workflow
-  #     with:
-  #       DOCKER_USER: ${{ secrets.DOCKER_USER }}
-  #       image_slug: "cicd-test"
-  #       image_tag: "latest"
-  #     secrets:
-  #       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+    mock_failed_ci_test_job:
+      runs-on: ubuntu-latest
+      steps:
+        - run: echo "Mock CI Test Job"
+        - run: echo "CI_TESTS_TRIGGERED=true" >> $GITHUB_OUTPUT
+        - run: exit 1
+      outputs:
+        CI_TESTS_TRIGGERED: ${{ steps.mock_failed_ci_test_job.outputs.CI_TESTS_TRIGGERED }}
+        CI_TESTS_FAILED: "1"
 
+    call_docker_job_after_ci_fail:
+      needs: mock_failed_ci_test_job
+      uses: boromir674/automated-workflows/.github/workflows/docker.yml@test
+      with:
+        DOCKER_USER: ${{ vars.DOCKER_USER }}
+        acceptance_policy: 3
+        image_slug: "cicd-test"
+        image_tag: "0111"
+      secrets:
+        DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
 
+    verify_docker_image_not_pushed:
+    # ASSERT ALL: needed Job was skipped
+      runs-on: ubuntu-latest
+      needs: call_docker_job_after_ci_fail
+      if: always()
+      steps:
+#  needs.*.result == 'success' && !contains(needs.*.result, 'failure') && !contains(needs.*.result, 'cancelled') || (
+    #     inputs.acceptance_policy == 3 && !contains(needs.*.result, 'failure') && (needs.*.result == 'skipped' || contains(needs.*.result, 'cancelled'))
+        - name: "Check Test Scenario Prerequisites Satisfied: Assert CI Tests Triggered, but Failed"
+          run: |
+            if [ "false" != ${{ ( contains(needs.mock_failed_ci_test_job.result, 'cancelled') || contains(needs.mock_failed_ci_test_job.result, 'skipped') ) }} ]; then
+              echo "[ERROR] Test Scenario Incorrect: Prerequisites NOT satisfied"
+              echo "[DEBUG] Test assumes CI Test Job Triggered, and Failed."
+              echo "[DEBUG] But our Mock CI Tests were skipped or cancelled!"
+              echo "Prematurely, exiting Test Case with 1!"
+              exit 1
+            fi
+            if [ ${{ needs.mock_failed_ci_test_job.outputs.result }} -eq 0 ]; then
+              echo "[ERROR] Test Scenario Incorrect: Prerequisites NOT satisfied"
+              echo "[DEBUG] Test assumes CI Test Job Triggered, and Failed."
+              echo "[DEBUG] But our Mock CI Tests passed!"
+              echo "Prematurely, exiting Test Case with 1!"
+              exit 1
+            fi
 
-  # # TEST Case 2 - CI Skipped
+        - name: Assert Image NOT Pushed to DockerHub
+          run: |
+            command_exit_status=0
+            docker manifest inspect "$IMAGE_REF" || command_exit_status=1
+            if [ $command_exit_status -ne 0 ]; then
+              echo " --> PASS: Assert NO PUSH Docker Image "${IMAGE_REF}" to DockerHub"
+              test_case_status=0
+            else
+              echo " --> FAIL: Assert NO PUSH Docker Image "${IMAGE_REF}" to DockerHub"
+              test_case_status=1
+            fi
+            exit $test_case_status
 
-  #   call_docker_job_after_ci_skip:
-  #     uses: boromir674/automated-workflows/.github/workflows/workflow.yml@main
-  #     name: Trigger Docker Workflow
-  #     with:
-  #       DOCKER_USER: ${{ secrets.DOCKER_USER }}
-  #       image_slug: "cicd-test"
-  #       image_tag: "latest"
-  #     secrets:
-  #       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+        - name: Assert (Functional) NOT Triggered Dockered
+          run: |
+            if [ "false" != ${{ !contains(needs.call_docker_job_after_ci_fail.result, 'skipped') }} ]; then
+              echo " --> FAIL: Assert NO Trigger Docker Job"
+              exit 1
+            fi
+
+  # TEST Case 2 - CI Skipped
+
+    # call_docker_job_after_ci_skip:
+    #   uses: boromir674/automated-workflows/.github/workflows/workflow.yml@main
+    #   name: Trigger Docker Workflow
+    #   with:
+    #     DOCKER_USER: ${{ secrets.DOCKER_USER }}
+    #     image_slug: "cicd-test"
+    #     image_tag: "latest"
+    #   secrets:
+    #     DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
