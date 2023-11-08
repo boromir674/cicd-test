@@ -57,6 +57,7 @@ jobs:
             if [ "true" == ${{ needs.mock_succeeded_ci_test_job.result != 'success' }} ]; then
               echo "[ERROR] Test Scenario Incorrect: Prerequisites NOT satisfied"
               echo "[DEBUG] Test assumes succeeded CI Test Job, but our Mock CI Tests failed!"
+              echo JOB RESULTS is ${{ needs.mock_succeeded_ci_test_job.result }}
               echo "Exiting with 1"
               exit 1
             fi
