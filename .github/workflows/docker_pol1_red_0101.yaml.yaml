@@ -58,9 +58,9 @@ jobs:
               exit 1
             fi
 
-        - run: echo "IMAGE_REF=${{ needs.call_docker_job_after_ci_skip.outputs.image_ref }}" >> $GITHUB_ENV
+        - run: echo "IMAGE_REF=${{ needs.call_docker_job_after_ci_fail.outputs.image_ref }}" >> $GITHUB_ENV
 
-        - name: Assert PUSHED Image ${{ needs.call_docker_job_after_ci_skip.outputs.image_ref }}
+        - name: Assert PUSHED Image ${{ needs.call_docker_job_after_ci_fail.outputs.image_ref }}
           run: |
             command_exit_status=0
             docker manifest inspect "$IMAGE_REF" || command_exit_status=1
