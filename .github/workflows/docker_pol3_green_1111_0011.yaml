@@ -1,6 +1,9 @@
 name: "GREEN: Docker Pol 3: 0011, 1111"
 
 on:
+  # add dispanch trigger to allow python test suite to invoke this
+  workflow_dispatch:
+
   push:
     branches:
       - "*"
