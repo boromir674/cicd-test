@@ -1,0 +1,145 @@
+name: "GREEN: Docker Pol 3: 0011, 1111"
+
+on:
+  # add dispanch trigger to allow python test suite to invoke this
+  workflow_dispatch:
+
+  push:
+    branches:
+      - "*"
+    tags:
+      - "*"
+
+
+env:
+  docker_target: ""
+  case_1111_ci_tests_pass: true
+  case_0011_ci_tests_skiped: true
+
+
+jobs:
+
+  # TEST Case 1 - CI Passes
+
+    mock_succeeded_ci_test_job:
+      runs-on: ubuntu-latest
+      if: always()
+      env:
+        myStringInBraces: ${{ 'It''s open source!' }}
+        myNull: ${{ null }}
+      steps:
+        - name: "Exit Job with emulated 'success' result"
+          run: |
+            if [ "true" != ${case_1111_ci_tests_pass} ]; then
+              echo "[FATAL] Test Scenario Incorrect: Prerequisites NOT satisfied"
+              echo "[FIX] Set the $case_1111_ci_tests_pass output to 'true' in env context at workflow level"
+              echo "Prematurely, exiting Test Case with 1!"
+              exit 1
+            fi
+
+    call_docker_job_after_ci_pass:
+      name: Trigger Docker Workflow
+      needs: mock_succeeded_ci_test_job
+      uses: boromir674/automated-workflows/.github/workflows/docker.yml@test
+      with:
+        DOCKER_USER: ${{ vars.DOCKER_USER }}
+        acceptance_policy: 3
+        image_slug: "cicd-test"
+        image_tag: "1111"
+      secrets:
+        DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+      # secrets: inherit
+
+    verify_docker_image_pushed:
+    # TODO: create local reusable workflow for this
+    # ASSERT ALL: needed Job called and passed & this Job exits with 0
+      runs-on: ubuntu-latest
+      needs: call_docker_job_after_ci_pass
+      if: always()
+      steps:
+        - name: "Assert CI Tests passed (or test code is wrong)"
+          run: |
+            if [ "true" == ${{ env.case_1111_ci_tests_pass != 'true' }} ]; then
+              echo "[ERROR] Test Scenario Incorrect: Prerequisites NOT satisfied"
+              echo "[DEBUG] Test assumes succeeded CI Test Job, but our Mock CI Tests failed!"
+              echo "Exiting with 1"
+              exit 1
+            fi
+
+        - run: echo ${{ needs.call_docker_job_after_ci_pass.outputs.image_ref }}
+        - run: echo ${{ needs.call_docker_job_after_ci_pass.outputs.IMAGE_REF }}
+
+        - run: echo "IMAGE_REF=${{ needs.call_docker_job_after_ci_pass.outputs.image_ref }}" >> $GITHUB_ENV
+
+        - name: Retrieve Layers of ${{ needs.call_docker_job_after_ci_pass.outputs.image_ref }}
+          run: |
+            docker manifest inspect "$IMAGE_REF" > docker_layers.json
+            command_exit_status=$?
+            if [ $command_exit_status -eq 0 ]; then
+              echo "PASS: Verify Docker Image "${IMAGE_REF}" was Pushed to DockerHub"
+            else
+              echo "FAIL: Verify Docker Image "${IMAGE_REF}" was Pushed to DockerHub"
+              exit 1
+            fi
+
+
+  # TEST Case 2 - CI Skipped
+    setup_case_0011:
+      runs-on: ubuntu-latest
+      outputs:
+        SHOULD_SKIP_CI_TESTS: ${{ steps.check_if_ci_tests_should_be_skipped.outputs.SHOULD_SKIP_CI_TESTS }}
+      steps:
+        - name: check_if_ci_tests_should_be_skipped
+          id: check_if_ci_tests_should_be_skipped
+          run: echo "SHOULD_SKIP_CI_TESTS=$case_0011_ci_tests_skiped" >> $GITHUB_OUTPUT
+
+    mock_skipped_ci_test_job:
+      runs-on: ubuntu-latest
+      needs: setup_case_0011
+      if: ${{ needs.setup_case_0011.outputs.SHOULD_SKIP_CI_TESTS != 'true' }}
+      steps:
+        - name: If I run then the test is wrong
+          run: exit 1
+
+    call_docker_job_after_ci_skip:
+      needs: mock_skipped_ci_test_job
+      if: always()
+      uses: boromir674/automated-workflows/.github/workflows/docker.yml@test
+      name: Trigger Docker Workflow
+      with:
+        DOCKER_USER: ${{ vars.DOCKER_USER }}
+        acceptance_policy: 3
+        image_slug: "cicd-test"
+        image_tag: "0011"
+      secrets:
+        DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+    
+    verify_docker_image_pushed2:
+      # TODO: create local reusable workflow for this
+      runs-on: ubuntu-latest
+      needs: call_docker_job_after_ci_skip
+      if: always()
+      steps:
+          # ONLY DIRECT DEPENDENCIES: .<job_id>.result: success, failure, cancelled, or skipped
+        - name: "Assert CI Tests were Skipped (or test scenario is invalid)"
+          run: |
+            if [ "true" == ${{ env.case_0011_ci_tests_skiped != 'true' }} ]; then
+              echo "[ERROR] Test Scenario Incorrect: Prerequisites NOT satisfied"
+              echo "[DEBUG] Test assumes succeeded CI Test Job were skipped, but our Mock CI Tests were NOT skipped!"
+              echo " --> Prematurely, exiting Test Case with 1!"
+              exit 1
+            fi
+        - run: echo "IMAGE_REF=${{ needs.call_docker_job_after_ci_skip.outputs.image_ref }}" >> $GITHUB_ENV
+
+        - name: Assert PUSHED Image ${{ needs.call_docker_job_after_ci_skip.outputs.image_ref }}
+          run: |
+            command_exit_status=0
+            docker manifest inspect "$IMAGE_REF" || command_exit_status=1
+            if [ $command_exit_status -eq 0 ]; then
+              echo " --> PASS: Assert PUSH Docker Image "${IMAGE_REF}" to DockerHub"
+              test_case_status=0
+            else
+              echo " --> FAIL: Assert PUSH Docker Image "${IMAGE_REF}" to DockerHub"
+              test_case_status=1
+            fi
+            exit $test_case_status
