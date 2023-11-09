@@ -7,24 +7,41 @@ on:
     tags:
       - "*"
 
+# System Input Signal: 01
+env:
+  # 1
+  CI_TESTS_RUN: true
+  # 0
+  CI_TESTS_PASS: false
+
 
 jobs:
+
+    setup_case_0001:
+      runs-on: ubuntu-latest
+      outputs:
+        SHOULD_RUN_CI_TESTS: ${{ steps.setup_signal.outputs.SHOULD_RUN_CI_TESTS }}
+        SHOULD_PASS_CI_TESTS: ${{ steps.setup_signal.outputs.SHOULD_PASS_CI_TESTS }}
+      steps:
+        - name: setup_signal
+          id: setup_signal
+          run: |
+            echo "SHOULD_RUN_CI_TESTS=$CI_TESTS_RUN" >> $GITHUB_OUTPUT
+            echo "SHOULD_PASS_CI_TESTS=$CI_TESTS_PASS" >> $GITHUB_OUTPUT
 
   # TEST Case 2 - CI Fails
 
     mock_failed_ci_test_job:
       runs-on: ubuntu-latest
+      needs: setup_case_0001
       steps:
         - run: echo "Mock CI Test Job"
         - run: echo "CI_TESTS_TRIGGERED=true" >> $GITHUB_OUTPUT
-        - run: exit 1
-      outputs:
-        CI_TESTS_TRIGGERED: ${{ steps.mock_failed_ci_test_job.outputs.CI_TESTS_TRIGGERED }}
-        CI_TESTS_FAILED: "1"
+        - run: exit ${{ needs.setup_case_0001.SHOULD_PASS_CI_TESTS == 'false' && 1 || 0 }}'}}
 
     call_docker_job_after_ci_fail:
       needs: mock_failed_ci_test_job
-      if: always()
+      if: always() && !contains(needs.*.result, 'failure') && needs.*.result == 'skipped'
       uses: boromir674/automated-workflows/.github/workflows/docker.yml@test
       with:
         DOCKER_USER: ${{ vars.DOCKER_USER }}
@@ -41,7 +58,7 @@ jobs:
       steps:
         - name: "Check Test Scenario Prerequisites Satisfied: Assert CI Tests Triggered, but Failed"
           run: |
-            if [ "false" != ${{ ( contains(needs.mock_failed_ci_test_job.result, 'cancelled') || contains(needs.mock_failed_ci_test_job.result, 'skipped') || contains(needs.*.result, 'cancelled') ) }} ]; then
+            if [ "true" == ${{ ( contains(needs.mock_failed_ci_test_job.result, 'cancelled') || contains(needs.mock_failed_ci_test_job.result, 'skipped') || contains(needs.*.result, 'cancelled') ) }} ]; then
               echo "[ERROR] Test Scenario Incorrect: Prerequisites NOT satisfied"
               echo "[DEBUG] Test assumes CI Test Job Triggered, and Failed."
               echo "[DEBUG] But our Mock CI Tests were skipped or cancelled!"

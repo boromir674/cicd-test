@@ -30,7 +30,7 @@ jobs:
       needs: setup_case_0101
       if: ${{ needs.setup_case_0101.outputs.SHOULD_RUN_CI_TESTS == 'true' }}
       steps:
-        - run: exit ${{ env.CI_TESTS_PASS == 'false' && 1 || 0 }}
+        - run: exit ${{ env.CI_TESTS_PASS == 'true' && 0 || 1 }}
 
     call_docker_job_after_ci_fail:
       needs: mock_failed_ci_test_job
