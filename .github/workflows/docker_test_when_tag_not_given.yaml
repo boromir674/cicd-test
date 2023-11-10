@@ -1,0 +1,47 @@
+name: "GREEN: Test Image Tag, if not given, defaults to git branch or tag"
+
+on:
+  push:
+    branches:
+      - "*"
+    tags:
+      - "*"
+
+env:
+  # System Input Signal: 00
+  CI_TESTS_00_PASS: false
+  CI_TESTS_00_RUN: false
+
+
+jobs:
+
+    call_docker_job_without_input_tag:
+      uses: boromir674/automated-workflows/.github/workflows/docker.yml@test
+      name: Trigger Docker Workflow
+      with:
+        DOCKER_USER: ${{ vars.DOCKER_USER }}
+        acceptance_policy: 1
+        image_slug: "cicd-test"
+      secrets:
+        DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+
+    verify_docker_image_pushed:
+      runs-on: ubuntu-latest
+      needs: call_docker_job_without_input_tag
+      if: always()
+      steps:
+          # ONLY DIRECT DEPENDENCIES: .<job_id>.result: success, failure, cancelled, or skipped
+        - run: echo "IMAGE_REF=${{ needs.call_docker_job_after_ci_skip.outputs.image_ref }}" >> $GITHUB_ENV
+        - run: exit ${{ contains(needs.call_docker_job_without_input_tag.outputs.image_ref, github.ref_name) == 'true' && 0 || 1 }}
+        - name: Assert PUSHED Image ${{ needs.call_docker_job_after_ci_skip.outputs.image_ref }}
+          run: |
+            command_exit_status=0
+            docker manifest inspect "$IMAGE_REF" || command_exit_status=1
+            if [ $command_exit_status -eq 0 ]; then
+              echo " --> PASS: Assert PUSH Docker Image "${IMAGE_REF}" to DockerHub"
+              test_case_status=0
+            else
+              echo " --> FAIL: Assert PUSH Docker Image "${IMAGE_REF}" to DockerHub"
+              test_case_status=1
+            fi
+            exit $test_case_status
