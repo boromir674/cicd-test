@@ -1,0 +1,105 @@
+name: "RED: Docker Pol 0: 0100"
+
+on:
+  push:
+    branches:
+      - "*"
+    tags:
+      - "*"
+
+env:
+  # System Input 2bit Signal: 01
+  CI_TESTS_01_PASS: false
+  CI_TESTS_01_RUN: true
+
+  # Policy 2bit State (00 = 0)
+  POLICY: 0
+
+
+jobs:
+  ### TEST CASE: 0100 ###
+  setup_case_0100:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup Test Scenario
+        id: setup
+        run: |
+          if [ "${POLICY}" -ne 0 ]; then
+            echo "[ERROR] Test Scenario Incorrect: Policy State is NOT satisfied"
+            echo "[DEBUG] Test assumes Policy 0, but Policy is ${POLICY}!"
+            echo " --> Prematurely, exiting Test Case with 1!"
+            exit 1
+          fi
+          echo "SHOULD_RUN_CI_TESTS=${CI_TESTS_01_RUN}" >> $GITHUB_OUTPUT
+          echo "SHOULD_PASS_CI_TESTS=${CI_TESTS_01_PASS}" >> $GITHUB_OUTPUT
+          echo "CASE_POLICY=${POLICY}" >> $GITHUB_OUTPUT
+    outputs:
+      SHOULD_RUN_CI_TESTS: ${{ steps.setup.outputs.SHOULD_RUN_CI_TESTS }}
+      SHOULD_PASS_CI_TESTS: ${{ steps.setup.outputs.SHOULD_PASS_CI_TESTS }}
+      CASE_POLICY: ${{ steps.setup.outputs.CASE_POLICY }}
+
+  mock_failed_ci_test_job:
+    runs-on: ubuntu-latest
+    needs: setup_case_0100
+    if: always() && ${{ needs.setup_case_0100.outputs.SHOULD_RUN_CI_TESTS == 'true' }}
+    steps:
+      - name: "Exit Job with emulated 'failure' result"
+        run: |
+          if [[ "false" != ${CI_TESTS_01_PASS} || "true" != ${CI_TESTS_01_RUN} ]]; then
+            echo "[FATAL] Test Scenario Incorrect: Prerequisites NOT satisfied"
+            echo "[FIX] Set the CI_TESTS_01_PASS env var in workflow level to 'false' in env context at workflow level"
+            echo "[FIX] Set the CI_TESTS_01_RUN env var in workflow level to 'true' in env context at workflow level"
+            echo "Prematurely, exiting Test Case with 1!"
+            exit 1
+          fi
+
+  call_docker_job_after_ci_fail:
+    name: Trigger Docker Workflow
+    needs: [setup_case_0100, mock_failed_ci_test_job]
+    uses: boromir674/automated-workflows/.github/workflows/docker.yml@test
+    if: always() && ${{ needs.setup_case_0100.outputs.CASE_POLICY }} != 0 && (
+        ${{ needs.setup_case_0100.outputs.CASE_POLICY }} == 1 || (
+        needs.*.result == 'success' && !contains(needs.*.result, 'failure') && !contains(needs.*.result, 'cancelled') || (
+        ${{ needs.setup_case_0100.outputs.CASE_POLICY }} == 3 && !contains(needs.*.result, 'failure') && (needs.*.result == 'skipped' || contains(needs.*.result, 'cancelled'))
+      )))
+    with:
+      DOCKER_USER: ${{ vars.DOCKER_USER }}
+      acceptance_policy: ${{ needs.setup_case_0100.outputs.CASE_POLICY }}
+      image_slug: "cicd-test"
+      image_tag: "0100"
+    secrets:
+      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+
+  verify_docker_image_not_pushed2:
+    runs-on: ubuntu-latest
+    needs: call_docker_job_after_ci_fail
+    if: always()
+    steps:
+      - name: "Sanity Check on Test Scenario Input Signal is 01 (CI Tests FAILED)"
+        run: |
+          if [[ "false" != ${CI_TESTS_01_PASS} || "true" != ${CI_TESTS_01_RUN} ]]; then
+            echo "[ERROR] Test Scenario Incorrect: CI Test Job must FAIL"
+            echo "[DEBUG] Expect Signal 01, as semantically correct Signal!"
+            echo "Prematurely, exiting Test Case with 1!"
+            exit 1
+          fi
+
+      - name: Assert Image NOT Pushed to DockerHub
+        run: |
+          command_exit_status=0
+          docker manifest inspect "$IMAGE_REF" || command_exit_status=1
+          if [ $command_exit_status -ne 0 ]; then
+            echo " --> PASS: Assert NO PUSH Docker Image "${IMAGE_REF}" to DockerHub"
+            test_case_status=0
+          else
+            echo " --> FAIL: Assert NO PUSH Docker Image "${IMAGE_REF}" to DockerHub"
+            test_case_status=1
+          fi
+          exit $test_case_status
+
+      - name: Assert (Functional) NOT Triggered Dockered
+        run: |
+          if [ "false" != ${{ !contains(needs.call_docker_job_after_ci_pass.result, 'skipped') }} ]; then
+            echo " --> FAIL: Assert NO Trigger Docker Job"
+            exit 1
+          fi
