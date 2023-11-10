@@ -52,6 +52,7 @@ jobs:
             echo "Prematurely, exiting Test Case with 1!"
             exit 1
           fi
+          exit ${{ needs.setup_case_0100.outputs.SHOULD_PASS_CI_TESTS == 'false' && 1 || 0 }}
 
   call_docker_job_after_ci_fail:
     name: Trigger Docker Workflow
