@@ -34,7 +34,13 @@ jobs:
         - run: echo "IMAGE_REF=${{ needs.call_docker_job_without_input_tag.outputs.image_ref }}" >> $GITHUB_ENV
         - run: echo ${{ needs.call_docker_job_without_input_tag.outputs.IMAGE_REF }}
         - run: echo RUNTIME_TAG=$(echo "${{ needs.call_docker_job_without_input_tag.outputs.IMAGE_REF }}" | cut -d ":" -f 2) >> $GITHUB_ENV
-        - run: '[ -z "$RUNTIME_TAG" || "$RUNTIME_TAG" != "${GITHUB_REF_NAME" ] && exit 1'
+
+        - run: echo ${{ env.RUNTIME_TAG }}
+        - name: "Assert Tag name is given from github branch or tag name"
+          run: |
+            if [ -z "$RUNTIME_TAG" || "$RUNTIME_TAG" != "${GITHUB_REF_NAME" ]; then
+              exit 1
+            fi
         # - run: exit ${{ contains(fromJSON(needs.call_docker_job_without_input_tag.outputs.image_ref), github.ref_name) == 'true' && 0 || 1 }}
         - name: Assert PUSHED Image ${{ needs.call_docker_job_without_input_tag.outputs.image_ref }}
           run: |
