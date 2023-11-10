@@ -185,7 +185,7 @@ jobs:
             #  || "false" != ${{ !contains(needs.call_docker_job_after_ci_pass.result, 'skipped') }} ]; then
         - name: "Assert (Functional) NOT Triggered Dockered, by inspecting ${{ needs.call_docker_job_after_ci_pass.result }}"
           run: |
-            if [[ ! -z "${IMAGE_REF}" -z ${IMAGE_REF} ]]; then
+            if [[ ! -z "${IMAGE_REF}" ]]; then
               echo " --> FAIL: Assert NO Trigger Docker Job"
               exit 1
             fi
