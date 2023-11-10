@@ -73,7 +73,7 @@ jobs:
       steps:
         - name: "Sanity Check on Test Scenario Input Signal is 00 (CI Tests NOT Triggered)"
           run: |
-            if [ "${CI_TESTS_RUN}" != "false" ]; then
+            if [ "${CI_TESTS_00_RUN}" != "false" ]; then
               echo "[ERROR] Test Scenario Incorrect: CI Test Job MUST be Skipped"
               echo "[DEBUG] Expect Signal 00, as semantically correct Signal!"
               echo "Prematurely, exiting Test Case with 1!"
@@ -162,7 +162,7 @@ jobs:
       steps:
         - name: "Sanity Check on Test Scenario Input Signal is 11 (CI Tests PASSED)"
           run: |
-            if [[ "${CI_TESTS_RUN}" != "false" || "${CI_TESTS_RUN}" != "false" ]]; then
+            if [[ "${CI_TESTS_11_PASS}" != "false" || "${CI_TESTS_11_RUN}" != "false" ]]; then
               echo "[ERROR] Test Scenario Incorrect: CI Test Job must PASS"
               echo "[DEBUG] Expect Signal 11, as semantically correct Signal!"
               echo "Prematurely, exiting Test Case with 1!"
