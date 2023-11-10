@@ -37,8 +37,11 @@ jobs:
 
         - run: echo ${{ env.RUNTIME_TAG }}
         - run: echo ${{ env.RUNTIME_TAG == github.ref_name }}
-        - name: "Assert Tag name is given from github branch or tag name"
-          run: exit ${{ env.RUNTIME_TAG == github.ref_name && "0" || "1" }}
+        - name: "Fail Job if Tag name is not given from github branch or tag name"
+          if: ${{ env.RUNTIME_TAG != github.ref_name }}
+          run: exit 1
+        # - name: "Assert Tag name is given from github branch or tag name"
+        #   run: exit ${{ env.RUNTIME_TAG == github.ref_name && "0" || "1" }}
           # run: '[ -z "${RUNTIME_TAG}" || "${RUNTIME_TAG}" != "${GITHUB_REF_NAME}" ] && exit 1'
           # run: |
           #   if [ -z "${RUNTIME_TAG}" || "${RUNTIME_TAG}" != "${GITHUB_REF_NAME}" ]; then
