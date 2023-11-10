@@ -31,9 +31,12 @@ jobs:
       if: always()
       steps:
           # ONLY DIRECT DEPENDENCIES: .<job_id>.result: success, failure, cancelled, or skipped
-        - run: echo "IMAGE_REF=${{ needs.call_docker_job_after_ci_skip.outputs.image_ref }}" >> $GITHUB_ENV
-        - run: exit ${{ contains(needs.call_docker_job_without_input_tag.outputs.image_ref, github.ref_name) == 'true' && 0 || 1 }}
-        - name: Assert PUSHED Image ${{ needs.call_docker_job_after_ci_skip.outputs.image_ref }}
+        - run: echo "IMAGE_REF=${{ needs.call_docker_job_without_input_tag.outputs.image_ref }}" >> $GITHUB_ENV
+        - run: echo ${{ needs.call_docker_job_without_input_tag.outputs.IMAGE_REF }}
+        - run: echo "RUNTIME_TAG=$(echo "${{ needs.call_docker_job_without_input_tag.outputs.IMAGE_REF }}" | cut -d ":" -f 2") >> $GITHUB_ENV
+        - run: '[ -z "$RUNTIME_TAG" || "$RUNTIME_TAG" != "${GITHUB_REF_NAME" ] && exit 1'
+        # - run: exit ${{ contains(fromJSON(needs.call_docker_job_without_input_tag.outputs.image_ref), github.ref_name) == 'true' && 0 || 1 }}
+        - name: Assert PUSHED Image ${{ needs.call_docker_job_without_input_tag.outputs.image_ref }}
           run: |
             command_exit_status=0
             docker manifest inspect "$IMAGE_REF" || command_exit_status=1
