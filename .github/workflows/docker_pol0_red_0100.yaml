@@ -99,7 +99,7 @@ jobs:
 
       - name: Assert (Functional) NOT Triggered Dockered
         run: |
-          if [ "false" != ${{ !contains(needs.call_docker_job_after_ci_pass.result, 'skipped') }} ]; then
+          if [ "false" != ${{ !contains(needs.call_docker_job_after_ci_fail.result, 'skipped') }} ]; then
             echo " --> FAIL: Assert NO Trigger Docker Job"
             exit 1
           fi
