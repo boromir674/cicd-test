@@ -162,7 +162,7 @@ jobs:
       steps:
         - name: "Sanity Check on Test Scenario Input Signal is 11 (CI Tests PASSED)"
           run: |
-            if [[ "${CI_TESTS_11_PASS}" != "false" || "${CI_TESTS_11_RUN}" != "false" ]]; then
+            if [[ "${CI_TESTS_11_PASS}" != "true" || "${CI_TESTS_11_RUN}" != "true" ]]; then
               echo "[ERROR] Test Scenario Incorrect: CI Test Job must PASS"
               echo "[DEBUG] Expect Signal 11, as semantically correct Signal!"
               echo "Prematurely, exiting Test Case with 1!"
