@@ -6,9 +6,10 @@ on:
 
   push:
     branches:
-      - "*"
+      - "test"
     tags:
-      - "*"
+      - "pol3"
+      - "pol3-g"
 
 
 env:

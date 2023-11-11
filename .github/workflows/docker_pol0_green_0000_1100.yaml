@@ -3,9 +3,10 @@ name: "GREEN: Docker Pol 0: 0000, 1100"
 on:
   push:
     branches:
-      - "*"
+      - "test"
     tags:
-      - "*"
+      - "pol0"
+      - "pol0-g"
 
 env:
   # System Input Signal: 00

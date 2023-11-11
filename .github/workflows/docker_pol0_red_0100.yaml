@@ -3,9 +3,10 @@ name: "RED: Docker Pol 0: 0100"
 on:
   push:
     branches:
-      - "*"
+      - "test"
     tags:
-      - "*"
+      - "pol0"
+      - "pol0-r"
 
 env:
   # System Input 2bit Signal: 01

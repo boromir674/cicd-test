@@ -3,9 +3,10 @@ name: "RED: Docker Pol 1: 0101"
 on:
   push:
     branches:
-      - "*"
+      - "test"
     tags:
-      - "*"
+      - "pol1"
+      - "pol1-r"
 
 # System Input Signal: 01
 env:
