@@ -3,9 +3,10 @@ name: "GREEN: Test Image Tag, if not given, defaults to git branch or tag"
 on:
   push:
     branches:
-      - "*"
+      - "test"
     tags:
-      - "*"
+      - "all"
+      - "docker-tag"
 
 env:
   # System Input Signal: 00
@@ -33,7 +34,7 @@ jobs:
           # ONLY DIRECT DEPENDENCIES: .<job_id>.result: success, failure, cancelled, or skipped
         - run: echo "IMAGE_REF=${{ needs.call_docker_job_without_input_tag.outputs.image_ref }}" >> $GITHUB_ENV
         - run: echo ${{ needs.call_docker_job_without_input_tag.outputs.IMAGE_REF }}
-        - run: echo RUNTIME_TAG=$(echo "${{ needs.call_docker_job_without_input_tag.outputs.IMAGE_REF }}" | cut -d ":" -f 2)lathos >> $GITHUB_ENV
+        - run: echo RUNTIME_TAG=$(echo "${{ needs.call_docker_job_without_input_tag.outputs.IMAGE_REF }}" | cut -d ":" -f 2) >> $GITHUB_ENV
 
         - run: echo ${{ env.RUNTIME_TAG }}
         - run: echo ${{ env.RUNTIME_TAG == github.ref_name }}

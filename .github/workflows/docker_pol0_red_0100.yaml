@@ -5,6 +5,7 @@ on:
     branches:
       - "test"
     tags:
+      - "all"
       - "pol0"
       - "pol0-r"
 
