@@ -60,14 +60,17 @@ jobs:
     name: Trigger Docker Workflow
     needs: [setup_case_0100, mock_failed_ci_test_job]
     uses: boromir674/automated-workflows/.github/workflows/docker.yml@test
-    if: always() && ${{ needs.setup_case_0100.outputs.CASE_POLICY }} != 0 && (
-        ${{ needs.setup_case_0100.outputs.CASE_POLICY }} == 1 || (
-        needs.*.result == 'success' && !contains(needs.*.result, 'failure') && !contains(needs.*.result, 'cancelled') || (
-        ${{ needs.setup_case_0100.outputs.CASE_POLICY }} == 3 && !contains(needs.*.result, 'failure') && (needs.*.result == 'skipped' || contains(needs.*.result, 'cancelled'))
-      )))
+    if: always()
+    # if: always() && ${{ needs.setup_case_0100.outputs.CASE_POLICY }} != 0 && (
+    #     ${{ needs.setup_case_0100.outputs.CASE_POLICY }} == 1 || (
+    #     needs.*.result == 'success' && !contains(needs.*.result, 'failure') && !contains(needs.*.result, 'cancelled') || (
+    #     ${{ needs.setup_case_0100.outputs.CASE_POLICY }} == 3 && !contains(needs.*.result, 'failure') && (needs.*.result == 'skipped' || contains(needs.*.result, 'cancelled'))
+    #   )))
     with:
       DOCKER_USER: ${{ vars.DOCKER_USER }}
       acceptance_policy: ${{ needs.setup_case_0100.outputs.CASE_POLICY }}
+      tests_pass: ${{ needs.mock_failed_ci_test_job.result == 'success' }}
+      tests_run: ${{ !contains(fromJSON('["skipped", "cancelled"]'), needs.mock_failed_ci_test_job.result) }}
       image_slug: "cicd-test"
       image_tag: "0100"
     secrets:

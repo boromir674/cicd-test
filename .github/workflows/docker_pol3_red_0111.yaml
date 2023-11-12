@@ -48,6 +48,8 @@ jobs:
       with:
         DOCKER_USER: ${{ vars.DOCKER_USER }}
         acceptance_policy: 3
+        tests_pass: ${{ needs.mock_failed_ci_test_job.result == 'success' }}
+        tests_run: ${{ !contains(fromJSON('["skipped", "cancelled"]'), needs.mock_failed_ci_test_job.result) }}
         image_slug: "cicd-test"
         image_tag: "0111"
       secrets:
