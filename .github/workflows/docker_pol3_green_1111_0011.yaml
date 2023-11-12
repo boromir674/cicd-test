@@ -46,7 +46,7 @@ jobs:
       with:
         DOCKER_USER: ${{ vars.DOCKER_USER }}
         acceptance_policy: 3
-        tests_pass: ${{ needs.mock_succeeded_ci_test_job.outputs.result == 'success' }}
+        tests_pass: ${{ needs.mock_succeeded_ci_test_job.result == 'success' }}
         tests_run: ${{ true }}
         image_slug: "cicd-test"
         image_tag: "1111"
