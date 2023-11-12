@@ -1,0 +1,83 @@
+name: "RED: Docker Pol 2: 0110"
+
+on:
+  push:
+    branches:
+      - "test"
+    tags:
+      - "all"
+      - "pol2"
+      - "pol2-r"
+
+# System Input Signal: 01
+env:
+  # 1
+  CI_TESTS_RUN: true
+  # 0
+  CI_TESTS_PASS: false
+
+
+jobs:
+
+  setup:
+    name: "Setup 0110"
+    runs-on: ubuntu-latest
+    outputs:
+      SHOULD_RUN_CI_TESTS: ${{ steps.setup_signal.outputs.SHOULD_RUN_CI_TESTS }}
+      SHOULD_PASS_CI_TESTS: ${{ steps.setup_signal.outputs.SHOULD_PASS_CI_TESTS }}
+    steps:
+      - name: setup_signal
+        id: setup_signal
+        run: |
+          echo "SHOULD_RUN_CI_TESTS=$CI_TESTS_RUN" >> $GITHUB_OUTPUT
+          echo "SHOULD_PASS_CI_TESTS=$CI_TESTS_PASS" >> $GITHUB_OUTPUT
+
+  # TEST Case 0110 - CI Fails
+
+  fail_tests:
+    runs-on: ubuntu-latest
+    needs: setup
+    if: ${{ needs.setup.outputs.SHOULD_RUN_CI_TESTS != 'false' }}
+    steps:
+      - name: If I run then the test is wrong
+        run: exit 1
+
+  call_docker_job_after_ci_fail:
+    needs: fail_tests
+    name: "Docker - 0110"
+    if: always()
+    uses: boromir674/automated-workflows/.github/workflows/docker.yml@test
+    with:
+      DOCKER_USER: ${{ vars.DOCKER_USER }}
+      acceptance_policy: 2
+      tests_pass: ${{ needs.fail_tests.result == 'success' }}
+      tests_run: ${{ !contains(fromJSON('["skipped", "cancelled"]'), needs.fail_tests.result) }}
+      image_slug: "cicd-test"
+      image_tag: "0110"
+    secrets:
+      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+
+  verify_docker_image_not_pushed:
+    runs-on: ubuntu-latest
+    needs: call_docker_job_after_ci_fail
+    if: always()
+    steps:
+      - name: Assert Image NOT Pushed to DockerHub
+        run: |
+          command_exit_status=0
+          docker manifest inspect "$IMAGE_REF" || command_exit_status=1
+          if [ $command_exit_status -ne 0 ]; then
+            echo " --> PASS: Assert NO PUSH Docker Image "${IMAGE_REF}" to DockerHub"
+            test_case_status=0
+          else
+            echo " --> FAIL: Assert NO PUSH Docker Image "${IMAGE_REF}" to DockerHub"
+            test_case_status=1
+          fi
+          exit $test_case_status
+
+      - name: Assert (Functional) NOT Triggered Docker Job
+        run: |
+          if [ "true" != ${{ contains(needs.call_docker_job_after_ci_fail.result, 'skipped') }} ]; then
+            echo " --> FAIL: Assert NO Trigger Docker Job"
+            exit 1
+          fi

@@ -1,0 +1,135 @@
+name: "GREEN: Docker Pol 2: 0010, 1110"
+
+on:
+  # add dispanch trigger to allow python test suite to invoke this
+  workflow_dispatch:
+
+  push:
+    branches:
+      - "test"
+    tags:
+      - "all"
+      - "pol2"
+      - "pol2-g"
+
+
+env:
+  # System Input Signal: 00
+  CI_TESTS_00_PASS: false
+  CI_TESTS_00_RUN: false
+  # System Input Signal: 11
+  CI_TESTS_11_PASS: true
+  CI_TESTS_11_RUN: true
+
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    outputs:
+      CI_TESTS_00_PASS: ${{ steps.setup_signals.outputs.CI_TESTS_00_PASS }}
+      CI_TESTS_00_RUN: ${{ steps.setup_signals.outputs.CI_TESTS_00_RUN }}
+      CI_TESTS_11_PASS: ${{ steps.setup_signals.outputs.CI_TESTS_11_PASS }}
+      CI_TESTS_11_RUN: ${{ steps.setup_signals.outputs.CI_TESTS_11_RUN }}
+    steps:
+      - name: Setup Signals as Outputs
+        id: setup_signals
+        run: |
+          echo "CI_TESTS_00_PASS=$CI_TESTS_00_PASS" >> $GITHUB_OUTPUT
+          echo "CI_TESTS_00_RUN=$CI_TESTS_00_RUN" >> $GITHUB_OUTPUT
+          echo "CI_TESTS_11_PASS=$CI_TESTS_11_PASS" >> $GITHUB_OUTPUT
+          echo "CI_TESTS_11_RUN=$CI_TESTS_11_RUN" >> $GITHUB_OUTPUT
+
+  # TEST Case 0010 - SKIP CI Tests
+  skip_tests:
+    name: "SKIP Tests - 00"
+    runs-on: ubuntu-latest
+    needs: setup
+    if: ${{ needs.setup.outputs.CI_TESTS_00_RUN != 'false' }}
+    steps:
+      - name: If I run then the test is wrong
+        run: exit 1
+
+  call_docker_job_after_ci_skip:
+    needs: skip_tests
+    if: always()
+    uses: boromir674/automated-workflows/.github/workflows/docker.yml@test
+    name: Trigger Docker Workflow
+    with:
+      DOCKER_USER: ${{ vars.DOCKER_USER }}
+      acceptance_policy: 2
+      tests_pass: ${{ needs.skip_tests.result == 'success' }}
+      tests_run: ${{ !contains(fromJSON('["skipped", "cancelled"]'), needs.skip_tests.result) }}
+      image_slug: "cicd-test"
+      image_tag: "0011"
+    secrets:
+      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+    
+  verify_docker_image_pushed2:
+    name: "ASSERT Docker Image Pushed - 0010"
+    # TODO: create local reusable workflow for this
+    runs-on: ubuntu-latest
+    needs: call_docker_job_after_ci_skip
+    if: always()
+    steps:
+      - run: echo "IMAGE_REF=${{ needs.call_docker_job_after_ci_skip.outputs.image_ref }}" >> $GITHUB_ENV
+
+      - name: Assert PUSHED Image ${{ needs.call_docker_job_after_ci_skip.outputs.image_ref }}
+        run: |
+          command_exit_status=0
+          docker manifest inspect "$IMAGE_REF" || command_exit_status=1
+          if [ $command_exit_status -eq 0 ]; then
+            echo " --> PASS: Assert PUSH Docker Image "${IMAGE_REF}" to DockerHub"
+            test_case_status=0
+          else
+            echo " --> FAIL: Assert PUSH Docker Image "${IMAGE_REF}" to DockerHub"
+            test_case_status=1
+          fi
+          exit $test_case_status
+
+  # TEST Case 1110 - PASS CI Tests
+
+  pass_tests:
+    name: "PASS Tests - 11"
+    runs-on: ubuntu-latest
+    needs: setup
+    if: ${{ needs.setup.outputs.CI_TESTS_11_RUN == 'true' }}
+    steps:
+      - run: "[ ${{ needs.setup.outputs.CI_TESTS_11_PASS }} ] && echo 'PASS: Tests' || exit 1"
+
+  call_docker_job_after_pass_ci:
+    needs: pass_tests
+    if: always()
+    uses: boromir674/automated-workflows/.github/workflows/docker.yml@test
+    name: Docker - 1110
+    with:
+      DOCKER_USER: ${{ vars.DOCKER_USER }}
+      acceptance_policy: 2
+      tests_pass: ${{ needs.pass_tests.result == 'success' }}
+      tests_run: ${{ !contains(fromJSON('["skipped", "cancelled"]'), needs.pass_tests.result) }}
+      image_slug: "cicd-test"
+      image_tag: "1110"
+    secrets:
+      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+    
+  verify_docker_image_pushed1:
+    name: "ASSERT Docker Image Pushed - 1110"
+    # TODO: create local reusable workflow for this
+    runs-on: ubuntu-latest
+    needs: call_docker_job_after_pass_ci
+    if: always()
+    steps:
+      - run: echo "IMAGE_REF=${{ needs.call_docker_job_after_pass_ci.outputs.image_ref }}" >> $GITHUB_ENV
+
+      - name: Assert PUSHED Image ${{ needs.call_docker_job_after_pass_ci.outputs.image_ref }}
+        run: |
+          command_exit_status=0
+          docker manifest inspect "$IMAGE_REF" || command_exit_status=1
+          if [ $command_exit_status -eq 0 ]; then
+            echo " --> PASS: Assert PUSH Docker Image "${IMAGE_REF}" to DockerHub"
+            test_case_status=0
+          else
+            echo " --> FAIL: Assert PUSH Docker Image "${IMAGE_REF}" to DockerHub"
+            test_case_status=1
+          fi
+          exit $test_case_status
+ 
