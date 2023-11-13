@@ -9,14 +9,45 @@ on:
       - "pypi"
 
 jobs:
+
+  build_python:
+    runs-on: ubuntu-latest
+    name: Build Python
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: 3.11
+      - name: Install Tooling
+        run: |
+          pip install --upgrade pip
+          pip install tox==3.28
+
+      # Emulate Build Python
+      - name: Build Python in './dist/' folder
+        run: tox -e build
+
+      # Emulate Artifacts Upload
+      - run: echo ARTIFACTS=unit_test_artifacts >> $GITHUB_OUTPUT
+        id: set_artifacts_ref
+
+      - name: Archive Python
+        uses: actions/upload-artifact@v2
+        with:
+          name: ${{ steps.set_artifacts_ref.outputs.ARTIFACTS }}
+          path: dist
+    outputs:
+      ARTIFACTS: ${{ steps.set_artifacts_ref.outputs.ARTIFACTS }}
+
   call_pypi_env:
-    uses: boromir674/automated-workflows/.github/workflows/pypi_env.yml@test
+    needs: build_python
+    uses: boromir674/automated-workflows/.github/workflows/pypi.yml@test
     name: PyPI Upload
     with:
-      distro_name: unit_test_python_distro
-      distro_version: "1.0.0"
+      distro_name: cicd_test
+      distro_version: "0.0.1"
       should_trigger: true
-      artifacts_path: unit_test_artifacts
+      artifacts_path: ${{ needs.build_python.outputs.ARTIFACTS }}
       pypi_server: testpypi
       TWINE_USERNAME: boromir674
     secrets:
