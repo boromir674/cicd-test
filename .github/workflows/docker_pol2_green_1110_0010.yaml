@@ -51,16 +51,16 @@ jobs:
 
   call_docker_job_after_ci_skip:
     needs: skip_tests
+    name: "Docker - 0010"
     if: always()
     uses: boromir674/automated-workflows/.github/workflows/docker.yml@test
-    name: Trigger Docker Workflow
     with:
       DOCKER_USER: ${{ vars.DOCKER_USER }}
       acceptance_policy: 2
       tests_pass: ${{ needs.skip_tests.result == 'success' }}
       tests_run: ${{ !contains(fromJSON('["skipped", "cancelled"]'), needs.skip_tests.result) }}
       image_slug: "cicd-test"
-      image_tag: "0011"
+      image_tag: "0010"
     secrets:
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
     
