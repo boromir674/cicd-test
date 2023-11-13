@@ -39,20 +39,30 @@ jobs:
     outputs:
       ARTIFACTS: ${{ steps.set_artifacts_ref.outputs.ARTIFACTS }}
 
-  call_pypi_env:
+  call_pypi:
+    name: PyPI - password from Repo Secrets
     needs: build_python
-    name: PyPI Upload
     uses: boromir674/automated-workflows/.github/workflows/pypi.yml@test
     with:
       distro_name: cicd_test_workflow
       distro_version: "0.0.1"
       should_trigger: true
       artifacts_path: ${{ needs.build_python.outputs.ARTIFACTS }}
-      # artifacts_path: "unit_test_artifacts"
       pypi_server: "testpypi"
       TWINE_USERNAME: "boromir674"
     secrets:
       TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD_testpypi_from_repo_secrets }}
+
+  call_pypi1:
+    name: PyPI - Creds from Repo Environment
+    needs: build_python
+    uses: boromir674/automated-workflows/.github/workflows/pypi_env.yml@test
+    with:
+      distro_name: cicd_test_workflow
+      distro_version: "0.0.1"
+      should_trigger: true
+      pypi_env: "PYPI_TEST"
+      artifacts_path: ${{ needs.build_python.outputs.ARTIFACTS }}
 
   # verify_python_distro_uploaded:
   #   runs-on: ubuntu-latest
