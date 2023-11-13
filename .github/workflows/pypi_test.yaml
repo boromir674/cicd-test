@@ -47,9 +47,10 @@ jobs:
       distro_name: cicd_test
       distro_version: "0.0.1"
       should_trigger: true
-      artifacts_path: ${{ needs.build_python.outputs.ARTIFACTS }}
-      pypi_server: testpypi
-      TWINE_USERNAME: boromir674
+      # artifacts_path: ${{ needs.build_python.outputs.ARTIFACTS }}
+      artifacts_path: "unit_test_artifacts"
+      pypi_server: "testpypi"
+      TWINE_USERNAME: "boromir674"
     secrets:
       TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD_testpypi_from_repo_secrets }}
 
