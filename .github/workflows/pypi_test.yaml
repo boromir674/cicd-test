@@ -41,8 +41,8 @@ jobs:
 
   call_pypi_env:
     needs: build_python
-    uses: boromir674/automated-workflows/.github/workflows/pypi.yml@test
     name: PyPI Upload
+    uses: boromir674/automated-workflows/.github/workflows/pypi.yml@test
     with:
       distro_name: cicd_test
       distro_version: "0.0.1"
