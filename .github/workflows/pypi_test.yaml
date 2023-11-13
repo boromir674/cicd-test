@@ -47,8 +47,8 @@ jobs:
       distro_name: cicd_test_workflow
       distro_version: "0.0.1"
       should_trigger: true
-      # artifacts_path: ${{ needs.build_python.outputs.ARTIFACTS }}
-      artifacts_path: "unit_test_artifacts"
+      artifacts_path: ${{ needs.build_python.outputs.ARTIFACTS }}
+      # artifacts_path: "unit_test_artifacts"
       pypi_server: "testpypi"
       TWINE_USERNAME: "boromir674"
     secrets:
