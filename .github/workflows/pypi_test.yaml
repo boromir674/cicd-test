@@ -1,0 +1,33 @@
+name: "GREEN: Test PyPI Upload Job"
+
+on:
+  push:
+    branches:
+      - "test"
+    tags:
+      - "all"
+      - "pypi"
+
+jobs:
+  call_pypi_env:
+    uses: boromir674/automated-workflows/.github/workflows/pypi_env.yml@test
+    name: PyPI Upload
+    with:
+      distro_name: unit_test_python_distro
+      distro_version: "1.0.0"
+      should_trigger: true
+      artifacts_path: unit_test_artifacts
+      pypi_server: testpypi
+      TWINE_USERNAME: boromir674
+    secrets:
+      DOCKER_PASSWORD: ${{ secrets.TWINE_PASSWORD_from_repo_secrets }}
+
+  # verify_python_distro_uploaded:
+  #   runs-on: ubuntu-latest
+  #   needs: call_pypi_env
+  #   if: always()
+  #   steps:
+  #     - name: Assert UPLOADED to '${{ inputs.pypi_server }}' PyPI
+  #       run: |
+  #         TEST_PYPI='https://test.pypi.org/simple/'
+  #         pip install --dry-run --no-deps --index-url "${TEST_PYPI}" "${{ inputs.distro_name }}"
