@@ -63,6 +63,11 @@ jobs:
       should_trigger: true
       pypi_env: "PYPI_TEST"
       artifacts_path: ${{ needs.build_python.outputs.ARTIFACTS }}
+    secrets:
+      # This magically works, and the environment secret will be loaded
+      TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}
+      # it is really weird to pass a secret here because it feels that is comming from outside,
+      # from the repository secrets, not from the environment. But it doesn't!
 
   # verify_python_distro_uploaded:
   #   runs-on: ubuntu-latest
