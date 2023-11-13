@@ -63,6 +63,7 @@ jobs:
       should_trigger: true
       pypi_env: "PYPI_TEST"
       artifacts_path: ${{ needs.build_python.outputs.ARTIFACTS }}
+      require_wheel: true
     secrets:
       # This magically works, and the environment secret will be loaded
       TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}
