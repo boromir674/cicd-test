@@ -51,7 +51,7 @@ jobs:
       pypi_server: testpypi
       TWINE_USERNAME: boromir674
     secrets:
-      DOCKER_PASSWORD: ${{ secrets.TWINE_PASSWORD_from_repo_secrets }}
+      TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD_testpypi_from_repo_secrets }}
 
   # verify_python_distro_uploaded:
   #   runs-on: ubuntu-latest
