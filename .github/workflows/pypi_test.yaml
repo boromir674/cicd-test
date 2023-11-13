@@ -32,7 +32,7 @@ jobs:
         id: set_artifacts_ref
 
       - name: Archive Python
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: ${{ steps.set_artifacts_ref.outputs.ARTIFACTS }}
           path: dist
