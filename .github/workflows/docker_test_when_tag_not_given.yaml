@@ -1,6 +1,7 @@
 name: "GREEN: Test Image Tag, if not given, defaults to git branch or tag"
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - "test"

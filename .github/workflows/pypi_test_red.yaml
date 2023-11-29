@@ -1,6 +1,7 @@
 name: "RED: Test PyPI Upload Job"
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - "test"

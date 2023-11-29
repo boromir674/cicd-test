@@ -1,6 +1,7 @@
 name: "GREEN: Docker Pol 1: 0001, 1101"
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - "test"

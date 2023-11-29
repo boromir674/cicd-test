@@ -1,6 +1,7 @@
 name: "GREEN: Test PyPI Upload Job"
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - "test"
@@ -41,7 +42,7 @@ jobs:
       ARTIFACTS: ${{ steps.set_artifacts_ref.outputs.ARTIFACTS }}
 
   call_pypi:
-    name: PyPI - password from Repo Secrets
+    name: Password from Repo Secrets
     needs: build_python
     uses: boromir674/automated-workflows/.github/workflows/pypi.yml@test
     with:
@@ -55,7 +56,7 @@ jobs:
       TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD_testpypi_from_repo_secrets }}
 
   call_pypi1:
-    name: PyPI - Creds from Repo Environment
+    name: Creds from Repo Environment
     needs: build_python
     uses: boromir674/automated-workflows/.github/workflows/pypi_env.yml@test
     with:

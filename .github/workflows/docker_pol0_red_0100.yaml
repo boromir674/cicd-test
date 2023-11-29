@@ -1,6 +1,7 @@
 name: "RED: Docker Pol 0: 0100"
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - "test"

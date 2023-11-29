@@ -1,0 +1,42 @@
+on:
+  # Trigger when called from another workflow
+  # Aka parent/caller workflow calls the child/"called" workflow
+  workflow_call:
+    inputs:
+      image_ref:
+        required: true
+        type: string
+      ci_tests_prerequisites:
+        required: true
+        type: string
+
+jobs:
+
+    verify_docker_image_pushed:
+      runs-on: ubuntu-latest
+      if: always()
+      steps:
+        - name: "Assert CI Tests passed (or test code is wrong)"
+          run: |
+            if [ ${{ needs.mock_succeeded_ci_test_job.result }} -ne 0 ]; then
+              echo "[ERROR] Test Scenario Incorrect: Prerequisites NOT satisfied"
+              echo "[DEBUG] Test assumes succeeded CI Test Job, but our Mock CI Tests failed!"
+              echo "Exiting with 1"
+              exit 1
+            fi
+
+        - run: echo ${{ needs.call_docker_job_after_ci_pass.outputs.image_ref }}
+        - run: echo ${{ needs.call_docker_job_after_ci_pass.outputs.IMAGE_REF }}
+
+        - run: echo "IMAGE_REF=${{ needs.call_docker_job_after_ci_pass.outputs.image_ref }}" >> $GITHUB_ENV
+
+        - name: Retrieve Layers of ${{ needs.call_docker_job_after_ci_pass.outputs.image_ref }}
+          run: |
+            docker manifest inspect "$IMAGE_REF" > docker_layers.json
+            command_exit_status=$?
+            if [ $command_exit_status -eq 0 ]; then
+              echo "PASS: Verify Docker Image "${IMAGE_REF}" was Pushed to DockerHub"
+            else
+              echo "FAIL: Verify Docker Image "${IMAGE_REF}" was Pushed to DockerHub"
+              exit 1
+            fi

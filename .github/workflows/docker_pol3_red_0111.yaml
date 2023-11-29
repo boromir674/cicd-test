@@ -1,6 +1,7 @@
 name: "RED: Docker Pol 3: 0111"
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - "test"
@@ -19,7 +20,7 @@ env:
 
 jobs:
 
-    setup_case_0001:
+    setup_case_0111:
       runs-on: ubuntu-latest
       outputs:
         SHOULD_RUN_CI_TESTS: ${{ steps.setup_signal.outputs.SHOULD_RUN_CI_TESTS }}
