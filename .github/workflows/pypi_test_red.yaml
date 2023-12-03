@@ -42,7 +42,7 @@ jobs:
       ARTIFACTS: ${{ steps.set_artifacts_ref.outputs.ARTIFACTS }}
 
   call_pypi1:
-    name: EXPECT FAIL due to allow_existing flag
+    name: 'EXPECT FAIL: allow_existing is set to false'
     needs: build_python
     uses: boromir674/automated-workflows/.github/workflows/pypi_env.yml@test
     with:
@@ -57,7 +57,7 @@ jobs:
       TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}
 
   call_pypi2:
-    name: EXPECT FAIL due to allow_existing flag
+    name: 'EXPECT FAIL: allow_existing is false by default'
     needs: build_python
     uses: boromir674/automated-workflows/.github/workflows/pypi_env.yml@test
     with:
