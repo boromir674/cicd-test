@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  my_dev_container:
+    build:
+      context: ..
+      dockerfile: .devcontainer/Dockerfile
+      args:
+        # Python version to use (ie 3.10, 3.8)
+        VARIANT: "3.10"
+    environment:
+      - CICD_TEST_GH_TOKEN
+    volumes:
+      - ../..:/workspaces:cached
+
+    # Overrides default command so things don't shut down after the process ends.
+    command: sleep infinity  # should result in an open shell
