@@ -102,7 +102,6 @@ jobs:
             fi
 
     call_docker_job_after_ci_pass:
-      name: Trigger Docker Workflow
       needs: mock_succeeded_ci_test_job
       uses: boromir674/automated-workflows/.github/workflows/docker.yml@test
       with:

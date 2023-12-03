@@ -145,7 +145,6 @@ jobs:
 
     call_docker_job_after_ci_pass:
       needs: [setup_case_1100, mock_succeeded_ci_test_job]
-      name: Trigger Docker Workflow
       if: always() && ${{ needs.setup_case_1100.outputs.CASE_POLICY }} != 0 && (
           ${{ needs.setup_case_1100.outputs.CASE_POLICY }} == 1 || (
           needs.*.result == 'success' && !contains(needs.*.result, 'failure') && !contains(needs.*.result, 'cancelled') || (
