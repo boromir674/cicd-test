@@ -51,7 +51,7 @@ jobs:
       should_trigger: true
       artifacts_path: ${{ needs.build_python.outputs.ARTIFACTS }}
       pypi_server: "testpypi"
-      TWINE_USERNAME: "boromir674"
+      TWINE_USERNAME: "__token__"
     secrets:
       TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD_testpypi_from_repo_secrets }}
 
