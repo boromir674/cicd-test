@@ -1,0 +1,71 @@
+name: "GREEN: Test Static Code Analysis Workflow"
+
+### Static Code Analysis (sca) ###
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - "test"
+    tags:
+      - "all"
+      - "sca"
+      - "sca-g"
+
+jobs:
+
+  emulatesource_change:
+    runs-on: ubuntu-latest
+    name: Build Python
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: 3.11
+
+      # declare what folders contain 'Source Code Targets', (sct) for sca
+      - name: Set Source Code Targets
+        id: set_source_code_targets
+        run: echo "SCT=src" >> $GITHUB_OUTPUT
+
+      # make a change inside the 'src' folder
+      # append '# Automated Workflow Test inserted string, for testing purposes' to src/__init__.py
+      - name: Make a change inside the 'src' folder
+        run: |
+          echo "# Automated Workflow Test inserted string, for testing purposes" >> src/__init__.py
+
+      # store git diff in a variable to pass as input to reusable workflow, we test 
+      - name: Set Git Diff
+        id: set_git_diff
+        run: |
+          echo "GIT_DIFF=$(git diff --name-only)" >> $GITHUB_OUTPUT
+      
+      # use diff to determine what files have changed, if no changes, fail djob
+      - name: Determine if there are changes in the Source Code Targets
+        id: determine_if_there_are_changes_in_the_source_code_targets
+        run: |
+          if [[ -z "${{ steps.set_git_diff.outputs.GIT_DIFF }}" ]]; then
+            echo "No changes in the Source Code Targets"
+            echo "RUN_LINT=false" >> $GITHUB_OUTPUT
+          else
+            echo "Changes in the Source Code Targets"
+            echo "RUN_LINT=true" >> $GITHUB_OUTPUT
+          fi
+          # if no changes, fail job because we want changes for our testing scenario
+          if [[ "${{ steps.set_github_outputs.outputs.RUN_LINT }}" == "false" ]]; then
+            echo "No changes in the Source Code Targets"
+            echo "Failing because we want changes for our testing scenario"
+            exit 1
+          fi
+
+    outputs:
+      GIT_DIFF: ${{ steps.set_git_diff.outputs.GIT_DIFF }}
+
+  # now do what the "production" workflow is expected to do
+
+  call_static_code_analysis:
+    name: Call Static Code Analysis
+    needs: emulatesource_change
+    uses: boromir674/automated-workflows/.github/workflows/lint.yml@test
+    with:
+      git_diff: ${{ needs.emulatesource_change.outputs.GIT_DIFF }}
