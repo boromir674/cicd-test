@@ -29,6 +29,7 @@ def test_workflow_and_its_jobs_are_green(
     latest_run: int = max(workflow_runs["workflow_runs"], key=lambda x: x["run_number"])
     print(f"[DEBUG] Previous Workflow Run Number: {latest_run['run_number']}")
 
+    #### TRIGGER WORKFLOW ####
     response = trigger_workflow({'id': workflow_id}, token)
     triggered: bool = response.status_code == 204
     assert triggered, (
