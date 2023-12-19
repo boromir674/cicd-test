@@ -16,6 +16,7 @@ on:
       - "all"
       - "sca"
       - "sca-g"
+      - "v-sca-g*"
 
 jobs:
 
