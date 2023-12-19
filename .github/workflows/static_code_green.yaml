@@ -34,8 +34,12 @@ jobs:
           set-safe-directory: ''
 
       ### CREATE BRANCH sqa_test_temp ###
-      - run: git checkout -b sqa_test_temp
-      - run: git push -u origin HEAD
+
+      # - run: git checkout -b sqa_test_temp
+      # - run: git push -u origin HEAD
+      - run: git branch --track $1 origin/sqa_test_temp
+      - run: git checkout sqa_test_temp
+
       - run: 'echo [INFO] Current Ref: ${{ github.ref }}'
       ## Append the 'CICD Test: injected line for Automated Workflow Testing' in src/__init__.py
       - run: 'echo "CICD Test: injected line for Automated Workflow Testing" >> src/cicd_test/__init__.py'
