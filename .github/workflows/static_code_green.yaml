@@ -37,7 +37,7 @@ jobs:
 
       # - run: git checkout -b sqa_test_temp
       # - run: git push -u origin HEAD
-      - run: git branch --track $1 origin/sqa_test_temp
+      - run: git branch --track sqa_test_temp origin/sqa_test_temp
       - run: git checkout sqa_test_temp
 
       - run: 'echo [INFO] Current Ref: ${{ github.ref }}'
