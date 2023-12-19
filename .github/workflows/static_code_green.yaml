@@ -22,7 +22,6 @@ jobs:
 
   call_static_code_analysis:
     name: Call Static Code Analysis
-    needs: emulate_target_source_changes
     if: always()
     uses: boromir674/automated-workflows/.github/workflows/lint.yml@test
     with:
