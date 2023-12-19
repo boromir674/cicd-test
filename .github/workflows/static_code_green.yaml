@@ -24,5 +24,3 @@ jobs:
     name: Call Static Code Analysis
     if: always()
     uses: boromir674/automated-workflows/.github/workflows/lint.yml@test
-    with:
-      dedicated_branches: "sqa_test_temp"
