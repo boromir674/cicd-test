@@ -1,7 +1,7 @@
-from pathlib import Path
 import typing as t
-import pytest
+from pathlib import Path
 
+import pytest
 
 TEST_DIR: Path = Path(__file__).parent
 
@@ -13,9 +13,10 @@ YAML_FILES: t.List[str] = sorted([x.name for x in WORKFLOWS_DIR.iterdir() if x.i
 
 DOCKER_TEST_WORKFLOWS = [x for x in YAML_FILES if 'docker_pol' in x]
 PYPI_TEST_WORKFLOWS = [x for x in YAML_FILES if 'pypi' in x]
+STATIC_CODE_ANALYSIS_WORKFLOWS = [x for x in YAML_FILES if 'static_code' in x]
 
 
-@pytest.fixture(params=DOCKER_TEST_WORKFLOWS + PYPI_TEST_WORKFLOWS)
+@pytest.fixture(params=DOCKER_TEST_WORKFLOWS + PYPI_TEST_WORKFLOWS + STATIC_CODE_ANALYSIS_WORKFLOWS)
 def yaml_workflow(request, github_workflow):
     import yaml
     workflow_file_name: str = request.param
@@ -94,8 +95,9 @@ def yaml_workflow(request, github_workflow):
 
 @pytest.fixture
 def github_workflow():
-    import subprocess
     import json
+    import subprocess
+
     # gh api -X GET "/repos/${my_owner}/${my_repo}/actions/workflows" | jq '.workflows[] | .name,.id'
     res = subprocess.run(
         ["gh", "api", "-X", "GET", "/repos/boromir674/cicd-test/actions/workflows"],

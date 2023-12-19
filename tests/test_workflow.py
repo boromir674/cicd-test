@@ -5,14 +5,16 @@ def test_workflow_and_its_jobs_are_green(
     get_workflow_run_status,
     yaml_workflow,
 ):
-    import requests
     import time
     import typing as t
+
+    import requests
 
     owner = "boromir674"
     repo = "cicd-test"
     import os
-    token = os.environ.get("CICD_TEST_GH_TOKEN")
+    TOKEN_ENV_VAR: str = "CICD_TEST_GH_TOKEN"
+    token = os.environ.get(TOKEN_ENV_VAR)
 
     workflow, expectations = yaml_workflow
     workflow_id: int = workflow['id']

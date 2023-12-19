@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     name: Build Python
     steps:
-      - run: ${{ 'main' == github.ref_name || exit 1 }} 
+      - run: ${{ 'main' == github.ref_name }} == 'true' || exit 1
 
   call_static_code_analysis:
     name: Call Static Code Analysis
