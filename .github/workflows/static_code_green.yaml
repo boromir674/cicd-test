@@ -59,3 +59,18 @@ jobs:
     uses: boromir674/automated-workflows/.github/workflows/lint.yml@test
     with:
       dedicated_branches: "sqa_test_temp"
+
+
+  # clean_test:
+  #   name: Clean Test
+  #   runs-on: ubuntu-latest
+  #   needs: call_static_code_analysis
+  #   if: always()
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #       with:
+  #         fetch-depth: 0
+  #         # Add repository path as safe.directory for Git global config by running `git
+  #         # config --global --add safe.directory <path>`
+  #         # Default: true
+  #         set-safe-directory: ''
