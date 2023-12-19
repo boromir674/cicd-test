@@ -18,15 +18,36 @@ on:
 
 jobs:
 
-  emulate_running_on_main:
+  emulate_target_source_changes:
     runs-on: ubuntu-latest
     name: Build Python
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
+      - run: 'echo [INFO] Current Ref: ${{ github.ref }}'
       - uses: actions/checkout@v4
-      - run: ${{ 'main' == github.ref_name }} == 'true' || exit 1
+        with:
+          fetch-depth: 0
+          # Add repository path as safe.directory for Git global config by running `git
+          # config --global --add safe.directory <path>`
+          # Default: true
+          set-safe-directory: ''
+
+      ### CREATE BRANCH sqa_test_temp ###
+      - run: git checkout -b sqa_test_temp
+      - run: git push -u origin HEAD
+      - run: '[INFO] Current Ref: ${{ github.ref }}'
+      ## Append the 'CICD Test: injected line for Automated Workflow Testing' in src/__init__.py
+      - run: 'echo "CICD Test: injected line for Automated Workflow Testing" >> src/__init__.py'
+
+      - run: 'git commit -m "CICD Test: injected line for Automated Workflow Testing"'
+      - run: git push origin sqa_test_temp
+      - run: '[INFO] Current Ref: ${{ github.ref }}'
 
   call_static_code_analysis:
     name: Call Static Code Analysis
-    needs: emulate_running_on_main
+    needs: emulate_target_source_changes
     if: always()
     uses: boromir674/automated-workflows/.github/workflows/lint.yml@test
+    with:
+      dedicated_branches: "sqa_test_temp"
