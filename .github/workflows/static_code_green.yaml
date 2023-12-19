@@ -43,8 +43,10 @@ jobs:
       - run: 'echo [INFO] Current Ref: ${{ github.ref }}'
       ## Append the 'CICD Test: injected line for Automated Workflow Testing' in src/__init__.py
       - run: 'echo "CICD Test: injected line for Automated Workflow Testing" >> src/cicd_test/__init__.py'
-
+      - run: 'git config --global user.email "boromir674@hotmail.com"'
+      - run: 'git config --global user.name "Konstantinos Lampridis"'
       - run: 'git commit -m "CICD Test: injected line for Automated Workflow Testing"'
+
       - run: git push origin sqa_test_temp
       - run: 'echo [INFO] Current Ref: ${{ github.ref }}'
 
