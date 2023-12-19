@@ -13,4 +13,6 @@ from __future__ import absolute_import
 from cicd_test.cli import main
 
 if __name__ == "__main__":  # pragma: no cover
-    main(prog_name="cicd-test")  # pylint: disable=no-value-for-parameter,unexpected-keyword-arg
+    main(  # pylint: disable=no-value-for-parameter,unexpected-keyword-arg
+        prog_name="cicd-test"
+    )
