@@ -27,7 +27,7 @@ def test_workflow_and_its_jobs_are_green(
         workflow_runs_response.status_code == 200
     ), f"Failed to get workflow runs for Workflow {workflow_id}"
     workflow_runs: t.Dict = workflow_runs_response.json()
-    nb_runs: int = len(workflow_runs["workflow_runs"])
+
     latest_run: int = max(workflow_runs["workflow_runs"], key=lambda x: x["run_number"])
     print(f"[DEBUG] Previous Workflow Run Number: {latest_run['run_number']}")
 
@@ -67,7 +67,7 @@ def test_workflow_and_its_jobs_are_green(
         workflow_run := get_workflow_run_status({'id': run_id}, token).json()
     )["status"] not in NOT_FINISHED_STATES
     while not workflow_finished:
-        print(f"\n[DEBUG]: ----- Workflow Status: " + workflow_run["status"])
+        print("\n[DEBUG]: ----- Workflow Status: " + workflow_run["status"])
         time.sleep(5)  # Adjust the interval as needed
         workflow_finished = (
             workflow_run := get_workflow_run_status({'id': run_id}, token).json()
