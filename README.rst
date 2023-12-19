@@ -13,6 +13,10 @@ Test CI/CD Pipelines.
 | **PyPI:** https://pypi.org/project/cicd-test/
 | **CI:** https://github.com/boromir674/cicd-test/actions/
 
+GITHUB_TOKEN permissions configuration:
+https://github.com/boromir674/cicd-test/settings/actions
+
+If Test Workflows need to do `git push`, configure the `GITHUB_TOKEN` with suitable `repo` permissions.
 
 Features
 ========

@@ -38,7 +38,7 @@ jobs:
       - run: git push -u origin HEAD
       - run: 'echo [INFO] Current Ref: ${{ github.ref }}'
       ## Append the 'CICD Test: injected line for Automated Workflow Testing' in src/__init__.py
-      - run: 'echo "CICD Test: injected line for Automated Workflow Testing" >> src/__init__.py'
+      - run: 'echo "CICD Test: injected line for Automated Workflow Testing" >> src/cicd_test/__init__.py'
 
       - run: 'git commit -m "CICD Test: injected line for Automated Workflow Testing"'
       - run: git push origin sqa_test_temp
