@@ -1,0 +1,25 @@
+name: "GREEN: Test Code Visualization Workflow"
+
+# To Trigger:
+
+# export tt='v-code-viz-g-1.0.0'
+# git tag -d "$tt"; git push --delete origin "$tt"; git tag "$tt" && git push origin "$tt"
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - "test"
+    tags:
+      - "all"
+      - "code-viz"
+      # Green Signal
+      - "code-viz-g"
+      - "v-code-viz-g*"
+
+jobs:
+
+  call_visualize_python_imports_workflow:
+    name: Visualize Code Imports
+    if: always()
+    uses: boromir674/automated-workflows/.github/workflows/python_imports.yml@test
