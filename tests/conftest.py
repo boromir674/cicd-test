@@ -18,9 +18,12 @@ PYPI_TEST_WORKFLOWS = [x for x in YAML_FILES if 'pypi' in x]
 STATIC_CODE_ANALYSIS_WORKFLOWS = [x for x in YAML_FILES if 'static_code' in x]
 VISUALIZE_PYTHON_IMPORTS_WORKFLOWS = [x for x in YAML_FILES if 'code_viz' in x]
 
+
 @pytest.fixture(
-    params=DOCKER_TEST_WORKFLOWS + PYPI_TEST_WORKFLOWS + \
-        STATIC_CODE_ANALYSIS_WORKFLOWS + VISUALIZE_PYTHON_IMPORTS_WORKFLOWS
+    params=DOCKER_TEST_WORKFLOWS
+    + PYPI_TEST_WORKFLOWS
+    + STATIC_CODE_ANALYSIS_WORKFLOWS
+    + VISUALIZE_PYTHON_IMPORTS_WORKFLOWS
 )
 def yaml_workflow(request, github_workflow):
     import yaml
