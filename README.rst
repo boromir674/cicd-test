@@ -59,11 +59,11 @@ You need to have `Python` installed.
 Quickstart
 ==========
 
-Using `pip` is the approved way for installing `cicd_test`.
+Using `pip` is the approved way for installing `cicd_test_workflow`.
 
 .. code-block:: sh
 
-    python3 -m pip install cicd_test
+    python3 -m pip install cicd_test_workflow
 
 
 TODO Document a use case
@@ -131,7 +131,7 @@ License
 
 .. PyPI
 
-.. |release_version| image:: https://img.shields.io/pypi/v/cicd_test
+.. |release_version| image:: https://img.shields.io/pypi/v/cicd_test_workflow
     :alt: Production Version
     :target: https://pypi.org/project/cicd-test/
 

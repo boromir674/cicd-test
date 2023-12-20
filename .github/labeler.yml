@@ -5,9 +5,9 @@ ci:
 - any: ['.github/*', '.github/**/*']
 
 
-# Add 'business_logic' label to any change within the 'src/cicd_test' dir
+# Add 'business_logic' label to any change within the 'src/cicd_test_workflow' dir
 business_logic:
-- any: ['src/cicd_test/*', 'src/cicd_test/**/*']
+- any: ['src/cicd_test_workflow/*', 'src/cicd_test_workflow/**/*']
 
 
 # Add 'docs' label to any change within the 'docs' dir

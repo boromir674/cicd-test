@@ -27,7 +27,7 @@ def get_templated_vars():
         (),
         dict(
             project_slug='cicd-test',
-            package_name='cicd_test',
+            package_name='cicd_test_workflow',
             author_name='Konstantinos Lampridis',
             year='2023',
             version='0.0.1',

@@ -1,19 +1,19 @@
-"""Main `cicd_test` CLI."""
+"""Main `cicd_test_workflow` CLI."""
 
 import os
 import sys
 
 import click
 
-from cicd_test import __version__
+from cicd_test_workflow import __version__
 
 this_file_location = os.path.dirname(os.path.realpath(os.path.abspath(__file__)))
 
 
 def version_msg():
-    """cicd_test version, location and Python version.
+    """cicd_test_workflow version, location and Python version.
 
-    Get message about cicd_test version, location
+    Get message about cicd_test_workflow version, location
     and Python version.
     """
     python_version = sys.version[:3]

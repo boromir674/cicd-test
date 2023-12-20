@@ -44,7 +44,7 @@ classifiers = [
 ]
 
 packages = [
-    { include = "cicd_test", from = "src" },
+    { include = "cicd_test_workflow", from = "src" },
 ]
 
 include = [
@@ -159,4 +159,4 @@ skips = [
 ]
 
 [tool.software-release]
-version_variable = "src/cicd_test/__init__.py:__version__"
+version_variable = "src/cicd_test_workflow/__init__.py:__version__"
