@@ -33,7 +33,7 @@ jobs:
       - run: echo ARTIFACTS=unit_test_artifacts >> $GITHUB_OUTPUT
         id: set_artifacts_ref
 
-      - name: Archive Python
+      - name: Artifacts Upload of .tar.gz and .whl files
         uses: actions/upload-artifact@v3
         with:
           name: ${{ steps.set_artifacts_ref.outputs.ARTIFACTS }}
@@ -46,7 +46,7 @@ jobs:
     needs: build_python
     uses: boromir674/automated-workflows/.github/workflows/pypi.yml@test
     with:
-      distro_name: cicd_test_workflow
+      distro_name: cicd_test
       distro_version: "0.0.1"
       should_trigger: true
       artifacts_path: ${{ needs.build_python.outputs.ARTIFACTS }}
@@ -60,7 +60,7 @@ jobs:
     needs: build_python
     uses: boromir674/automated-workflows/.github/workflows/pypi_env.yml@test
     with:
-      distro_name: cicd_test_workflow
+      distro_name: cicd_test
       distro_version: "0.0.1"
       should_trigger: true
       pypi_env: "PYPI_TEST"
