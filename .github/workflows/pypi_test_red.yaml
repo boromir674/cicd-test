@@ -46,7 +46,7 @@ jobs:
     needs: build_python
     uses: boromir674/automated-workflows/.github/workflows/pypi_env.yml@test
     with:
-      distro_name: cicd_test
+      distro_name: cicd_test_workflow
       distro_version: "0.0.1"
       should_trigger: true
       pypi_env: "PYPI_TEST"
@@ -61,7 +61,7 @@ jobs:
     needs: build_python
     uses: boromir674/automated-workflows/.github/workflows/pypi_env.yml@test
     with:
-      distro_name: cicd_test
+      distro_name: cicd_test_workflow
       distro_version: "0.0.1"
       should_trigger: true
       pypi_env: "PYPI_TEST"
