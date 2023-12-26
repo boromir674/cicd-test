@@ -12,10 +12,8 @@ on:
 
 jobs:
   call_test_build_job:
-    needs: mock_succeeded_ci_test_job
     uses: boromir674/automated-workflows/.github/workflows/test_buld.yml@test
     with:
-      DOCKER_USER: ${{ vars.DOCKER_USER }}
       distro_name: cicd_test_workflow
       pep440_version: '0.0.1'
       run_policy: '1'
