@@ -1,5 +1,11 @@
 name: "GREEN: Test Build Caller Pol 1"
 
+# GitOps:
+
+# export tt=build-g
+# git tag -d "$tt"; git push --delete origin "$tt";
+# git tag "$tt" && git push origin "$tt"
+
 on:
   workflow_dispatch:
   push:
@@ -20,6 +26,5 @@ jobs:
       typecheck_policy: '1'
 
       # OS, Python, Build "mode"
-      build_installation: 'edit,sdist,wheel'
-      job_matrix: "{\"platform\": [\"ubuntu-latest\"], \"python-version\": [\"3.10\", \"3.11\"]}"
-    
+      build_installation: 'edit sdist wheel'
+      job_matrix: "{\"platform\": [\"ubuntu-latest\"], \"python-version\": [\"3.11\"]}"
