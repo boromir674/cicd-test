@@ -1,0 +1,51 @@
+name: "RED: Test PyPI no Required Wheel(s) Upload Job"
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - "test"
+    tags:
+      - "all"
+      - "pypi"
+      - "pypi-r"
+      - "pypi-no-wheels-r"
+
+jobs:
+  build_python:
+    runs-on: ubuntu-latest
+    name: Build Python
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v4
+        with:
+          python-version: 3.11
+      - name: Install Tooling
+        run: |
+          pip install --upgrade pip
+          pip install tox==3.28
+
+      # Build only Source Distro
+      - name: Build Python in './dist/' folder
+        run: tox -e build -- --sdist
+
+      # Artifacts Upload
+      - name: Archive Python
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ steps.set_artifacts_ref.outputs.ARTIFACTS }}
+          path: dist   # Local Path to the archive(s) to upload
+
+  call_pypi:
+    name: 'EXPECT FAIL: no wheels to upload'
+    needs: build_python
+    uses: boromir674/automated-workflows/.github/workflows/pypi_env.yml@test
+    with:
+      distro_name: cicd_test_workflow
+      distro_version: "0.0.1"
+      should_trigger: true
+      pypi_env: "PYPI_TEST"
+      require_wheel: true
+      allow_existing: false
+    secrets:
+      TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}
