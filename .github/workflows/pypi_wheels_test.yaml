@@ -59,8 +59,9 @@ jobs:
       - name: Artifacts Upload of .tar.gz and .whl files
         uses: actions/upload-artifact@v3
         with:
-          name: ${{ steps.set_artifacts_ref.outputs.ARTIFACTS }}
+          name: dist-${{ matrix.platform }}-${{ matrix.python-version }}
           path: dist
+          if-no-files-found: error
     outputs:
       ARTIFACTS: ${{ steps.set_artifacts_ref.outputs.ARTIFACTS }}
 
