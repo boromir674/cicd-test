@@ -33,7 +33,7 @@ jobs:
       - name: Archive Python
         uses: actions/upload-artifact@v3
         with:
-          name: ${{ steps.set_artifacts_ref.outputs.ARTIFACTS }}
+          name: python_build_artifacts
           path: dist   # Local Path to the archive(s) to upload
 
   call_pypi:
