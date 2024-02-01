@@ -1,0 +1,82 @@
+name: "GREEN: Test PyPI Multiple Wheels Upload Job"
+
+# export tt=pypi-wheels-g
+# git tag -d "$tt"; git push --delete origin "$tt"; git tag "$tt" && git push origin "$tt"
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - "test"
+    tags:
+      - "all"
+      - "pypi"
+      - "pypi-g"
+      - "pypi-wheels-g"
+
+env:
+  ### Multi-Python Job MATRIX ###
+  MATRIX_STRATEGY: "{\"platform\": [\"ubuntu-latest\"], \"python-version\": [\"3.10\", \"3.11\"]}"
+
+jobs:
+
+  read_job_matrix:
+    runs-on: ubuntu-latest
+    name: Build Python
+    steps:
+      - id: pass_env_to_output
+        run: |
+          echo "matrix=$MATRIX_STRATEGY" >> $GITHUB_OUTPUT
+    outputs:
+      matrix: ${{ steps.pass_env_to_output.outputs.matrix }}
+
+  build_python:
+    name: Build Python
+    runs-on: ${{ matrix.platform }}
+    needs: read_job_matrix
+    strategy:
+      matrix: ${{fromJSON(needs.read_job_matrix.outputs.matrix)}}
+    steps:
+      - run: echo "Platform -> ${{ matrix.platform }} , Python -> ${{ matrix.python-version }}"
+      - uses: actions/checkout@v4
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install Tooling
+        run: |
+          pip install --upgrade pip
+          pip install tox==3.28
+
+      # Emulate Build Python
+      - name: Build Python in './dist/' folder
+        run: tox -e build
+
+      # Emulate Artifacts Upload
+      - run: echo ARTIFACTS=unit_test_artifacts >> $GITHUB_OUTPUT
+        id: set_artifacts_ref
+
+      - name: Artifacts Upload of .tar.gz and .whl files
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ steps.set_artifacts_ref.outputs.ARTIFACTS }}
+          path: dist
+    outputs:
+      ARTIFACTS: ${{ steps.set_artifacts_ref.outputs.ARTIFACTS }}
+
+  call_pypi1:
+    name: Creds from Repo Environment
+    needs: build_python
+    uses: boromir674/automated-workflows/.github/workflows/pypi_env.yml@test
+    with:
+      distro_name: cicd_test_workflow
+      distro_version: "0.0.1"
+      should_trigger: true
+      pypi_env: "PYPI_TEST"
+      require_wheel: true
+      allow_existing: true
+    secrets:
+      # This magically works, and the environment secret will be loaded
+      TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}
+      # it is really weird to pass a secret here because it feels that is comming from outside,
+      # from the repository secrets, not from the environment. But it doesn't!
