@@ -29,3 +29,12 @@ jobs:
     steps:
       - name: Run Code when any PR merges
         run: echo "Hello, world!"
+
+      - run: 'echo "PR HEAD: ${{ github.event.pull_request.head.ref }}"'
+      - run: 'echo "PR BASE: ${{ github.event.pull_request.base.ref }}"'
+      - run: 'echo "PR MERGED: ${{ github.event.pull_request.merged }}"'
+      - run: 'echo "PR MERGE COMMIT SHA: ${{ github.event.pull_request.merge_commit_sha }}"'
+      - run: 'echo "PR MERGE REF: ${{ github.event.pull_request.merge_ref }}"'
+      - run: 'echo "PR MERGE REF NAME: ${{ github.event.pull_request.merge_ref_name }}"'
+      - run: 'echo "PR MERGE REF PREFIX: ${{ github.event.pull_request.merge_ref_prefix }}"'
+
