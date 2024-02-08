@@ -1,18 +1,24 @@
 name: "On any PR merge"
 
-# Trigger:
+### TRIGGER ###
 
 # export TMP_BR_HEAD="temp-branch-with-changes-1" && export TMP_BR_BASE="temp-branch-to-merge-into-1"
 
 # git checkout -b "$TMP_BR_HEAD" && echo "Hello, world!" >> README.rst && git add README.rst && git commit -m "dummy commit for testing purposes" && git push origin -u "$TMP_BR_HEAD"
 
 # git checkout main && git checkout -b "$TMP_BR_BASE" && git push origin -u "$TMP_BR_BASE"
+
+## Case 1 - Manual Merge or PR using git CLI
+
 # gh pr create --head "${TMP_BR_HEAD}" --base "${TMP_BR_BASE}" --title "Test Triggering Workflows, when this Merges" --body "This PR is for testing purposes only. Please ignore."
 
 # git merge "${TMP_BR_HEAD}" --no-ff --no-edit && git push
 
 
-# Clean:
+## Case 2 - Manual Merge or PR using git CLI
+
+
+## CLEAN UP ##
 
 # git checkout main && git branch -D "$TMP_BR_HEAD" && git push origin -d "$TMP_BR_HEAD" && git branch -D "$TMP_BR_BASE" && git push origin -d "$TMP_BR_BASE" && git checkout -; echo && echo "### CLEANUP COMPLETED ###"
 
@@ -33,53 +39,33 @@ jobs:
       - run: 'echo "PR HEAD: ${{ github.event.pull_request.head.ref }}"'
       - run: 'echo "PR BASE: ${{ github.event.pull_request.base.ref }}"'
       - run: 'echo "PR MERGED: ${{ github.event.pull_request.merged }}"'
-      - run: 'echo "PR MERGE COMMIT SHA: ${{ github.event.pull_request.merge_commit_sha }}"'
-      - run: 'echo "PR MERGE REF: ${{ github.event.pull_request.merge_ref }}"'
-      - run: 'echo "PR MERGE REF NAME: ${{ github.event.pull_request.merge_ref_name }}"'
-      - run: 'echo "PR MERGE REF PREFIX: ${{ github.event.pull_request.merge_ref_prefix }}"'
-
-      # Action
       - run: 'echo "EVENT ACTION: ${{ github.event.action }}"'
       - run: 'echo "EVENT NUMBER: ${{ github.event.number }}"'
-      - run: 'echo "EVENT REPOSITORY: ${{ github.event.repository }}"'
-      - run: 'echo "EVENT SENDER: ${{ github.event.sender }}"'
-      - run: 'echo "EVENT ORGANIZATION: ${{ github.event.organization }}"'
-      
-      # PR
-      - run: 'echo "PR TITLE: ${{ github.event.pull_request.title }}"'
-      - run: 'echo "PR BODY: ${{ github.event.pull_request.body }}"'
-      - run: 'echo "PR NUMBER: ${{ github.event.pull_request.number }}"'
-      - run: 'echo "PR URL: ${{ github.event.pull_request.url }}"'
-      - run: 'echo "PR HTML URL: ${{ github.event.pull_request.html_url }}"'
-      - run: 'echo "PR DIFF URL: ${{ github.event.pull_request.diff_url }}"'
-      - run: 'echo "PR PATCH URL: ${{ github.event.pull_request.patch_url }}"'
-
-      # Repository
-      - run: 'echo "REPOSITORY NAME: ${{ github.repository }}"'
-
-      # Commit
+      - run: 'echo "PR MERGE COMMIT SHA: ${{ github.event.pull_request.merge_commit_sha }}"'
       - run: 'echo "COMMIT SHA: ${{ github.sha }}"'
       - run: 'echo "COMMIT REF: ${{ github.ref }}"'
       - run: 'echo "COMMIT HEAD REF: ${{ github.head_ref }}"'
       - run: 'echo "COMMIT BASE REF: ${{ github.base_ref }}"'
       - run: 'echo "COMMIT EVENT NAME: ${{ github.event_name }}"'
-      - run: 'echo "COMMIT EVENT PATH: ${{ github.event_path }}"'
+
+      # Action
+      - run: 'echo "EVENT REPOSITORY: ${{ github.event.repository }}"'
+      - run: 'echo "EVENT SENDER: ${{ github.event.sender }}"'
+      
+      # PR
+      - run: 'echo "PR TITLE: ${{ github.event.pull_request.title }}"'
+      - run: 'echo "PR BODY: ${{ github.event.pull_request.body }}"'
+      - run: 'echo "PR NUMBER: ${{ github.event.pull_request.number }}"'
+      - run: 'echo "PR HTML URL: ${{ github.event.pull_request.html_url }}"'
+
+      # Repository
+      - run: 'echo "REPOSITORY NAME: ${{ github.repository }}"'
 
       # Workflow
       - run: 'echo "WORKFLOW NAME: ${{ github.workflow }}"'
-      - run: 'echo "WORKFLOW PATH: ${{ github.workflow_path }}"'
 
       # Run
       - run: 'echo "RUN ID: ${{ github.run_id }}"'
 
-      # Job
-      - run: 'echo "JOB ID: ${{ github.job }}"'
-
-      # Step
-      - run: 'echo "STEP ID: ${{ github.step }}"'
-
       # Actions
       - run: 'echo "ACTIONS RUN ID: ${{ github.run_id }}"'
-
-      # Environment
-      - run: 'echo "ENVIRONMENT: ${{ env }}"'
