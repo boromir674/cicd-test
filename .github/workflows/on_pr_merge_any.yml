@@ -2,7 +2,7 @@ name: "On any PR merge"
 
 ### TRIGGER ###
 
-# export TMP_BR_HEAD="temp-branch-with-changes-1" && export TMP_BR_BASE="temp-branch-to-merge-into-1"
+# export TMP_BR_HEAD="temp-branch-with-changes-1" && export TMP_BR_BASE="release-train"
 
 # git checkout -b "$TMP_BR_HEAD" && echo "Hello, world!" >> README.rst && git add README.rst && git commit -m "dummy commit for testing purposes" && git push origin -u "$TMP_BR_HEAD"
 
@@ -26,7 +26,7 @@ on:
   pull_request:
     types: [closed]
     branches:
-      - temp-branch-to-merge-into-1
+      - release-train
 
 jobs:
   run_when_pr_auto_merges:
