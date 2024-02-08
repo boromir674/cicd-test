@@ -172,3 +172,4 @@ License
 .. |tech-debt| image:: https://img.shields.io/codeclimate/tech-debt/boromir674/cicd-test
     :alt: Technical Debt
     :target: https://codeclimate.com/github/boromir674/cicd-test
+Hello, world!
