@@ -1,0 +1,30 @@
+name: "On any PR merge"
+
+# Trigger:
+
+# export TMP_BR_HEAD="temp-branch-with-changes-1" && export TMP_BR_BASE="temp-branch-to-merge-into-1"
+
+# git checkout -b "$TMP_BR" && echo "Hello, world!" >> README.rst && git add README.rst && git commit -m "dummy commit for testing purposes" && git push origin -u "$TMP_BR"
+
+# git checkout -b "$TMP_BR_BASE" && git pull origin -u "$TMP_BR_BASE"
+# gh pr create --head "${TMP_BR_HEAD}" --base "${TMP_BR_BASE}" --title "Test Triggering Workflows, when this Merges" --body "This PR is for testing purposes only. Please ignore."
+
+# git merge "${TMP_BR_HEAD}" --no-ff --no-edit && git push
+
+
+# Clean:
+
+# git checkout main && git branch -D "$TMP_BR_HEAD" && git push origin -d "$TMP_BR_HEAD" && git branch -D "$TMP_BR_BASE" && git push origin -d "$TMP_BR_BASE" && git checkout -; echo && echo "### CLEANUP COMPLETED ###"
+
+on:
+  pull_request:
+    types: [closed]
+
+
+jobs:
+  run_when_pr_auto_merges:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run Code when any PR merges
+        run: echo "Hello, world!"
