@@ -138,5 +138,6 @@ jobs:
       ############## Merge ##############
       - name: 'Merge PR   ${{ env.BOARDING }}  -->  ${{ env.TRAIN }}'
         run: gh pr merge "${{ env.BOARDING }}" --auto --delete-branch --squash
-
+        env:
+          GH_TOKEN: ${{ secrets.NEW_GH_TOKEN }}
         # HEAD is now at ${{ env.TRAIN }}
