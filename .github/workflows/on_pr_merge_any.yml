@@ -19,7 +19,8 @@ name: "On any PR merge"
 on:
   pull_request:
     types: [closed]
-
+    branches:
+      - temp-branch-to-merge-into-1
 
 jobs:
   run_when_pr_auto_merges:
