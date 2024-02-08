@@ -38,3 +38,48 @@ jobs:
       - run: 'echo "PR MERGE REF NAME: ${{ github.event.pull_request.merge_ref_name }}"'
       - run: 'echo "PR MERGE REF PREFIX: ${{ github.event.pull_request.merge_ref_prefix }}"'
 
+      # Action
+      - run: 'echo "EVENT ACTION: ${{ github.event.action }}"'
+      - run: 'echo "EVENT NUMBER: ${{ github.event.number }}"'
+      - run: 'echo "EVENT REPOSITORY: ${{ github.event.repository }}"'
+      - run: 'echo "EVENT SENDER: ${{ github.event.sender }}"'
+      - run: 'echo "EVENT ORGANIZATION: ${{ github.event.organization }}"'
+      
+      # PR
+      - run: 'echo "PR TITLE: ${{ github.event.pull_request.title }}"'
+      - run: 'echo "PR BODY: ${{ github.event.pull_request.body }}"'
+      - run: 'echo "PR NUMBER: ${{ github.event.pull_request.number }}"'
+      - run: 'echo "PR URL: ${{ github.event.pull_request.url }}"'
+      - run: 'echo "PR HTML URL: ${{ github.event.pull_request.html_url }}"'
+      - run: 'echo "PR DIFF URL: ${{ github.event.pull_request.diff_url }}"'
+      - run: 'echo "PR PATCH URL: ${{ github.event.pull_request.patch_url }}"'
+
+      # Repository
+      - run: 'echo "REPOSITORY NAME: ${{ github.repository }}"'
+
+      # Commit
+      - run: 'echo "COMMIT SHA: ${{ github.sha }}"'
+      - run: 'echo "COMMIT REF: ${{ github.ref }}"'
+      - run: 'echo "COMMIT HEAD REF: ${{ github.head_ref }}"'
+      - run: 'echo "COMMIT BASE REF: ${{ github.base_ref }}"'
+      - run: 'echo "COMMIT EVENT NAME: ${{ github.event_name }}"'
+      - run: 'echo "COMMIT EVENT PATH: ${{ github.event_path }}"'
+
+      # Workflow
+      - run: 'echo "WORKFLOW NAME: ${{ github.workflow }}"'
+      - run: 'echo "WORKFLOW PATH: ${{ github.workflow_path }}"'
+
+      # Run
+      - run: 'echo "RUN ID: ${{ github.run_id }}"'
+
+      # Job
+      - run: 'echo "JOB ID: ${{ github.job }}"'
+
+      # Step
+      - run: 'echo "STEP ID: ${{ github.step }}"'
+
+      # Actions
+      - run: 'echo "ACTIONS RUN ID: ${{ github.run_id }}"'
+
+      # Environment
+      - run: 'echo "ENVIRONMENT: ${{ env }}"'
