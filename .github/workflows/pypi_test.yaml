@@ -1,5 +1,8 @@
 name: "GREEN: Test PyPI Upload Job"
 
+# export tt=pypi-g
+# git tag -d "$tt"; git push --delete origin "$tt"; git tag "$tt" && git push origin "$tt"
+
 on:
   workflow_dispatch:
   push:

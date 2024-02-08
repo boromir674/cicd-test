@@ -4,9 +4,9 @@ name: "On any PR merge"
 
 # export TMP_BR_HEAD="temp-branch-with-changes-1" && export TMP_BR_BASE="temp-branch-to-merge-into-1"
 
-# git checkout -b "$TMP_BR" && echo "Hello, world!" >> README.rst && git add README.rst && git commit -m "dummy commit for testing purposes" && git push origin -u "$TMP_BR"
+# git checkout -b "$TMP_BR_HEAD" && echo "Hello, world!" >> README.rst && git add README.rst && git commit -m "dummy commit for testing purposes" && git push origin -u "$TMP_BR_HEAD"
 
-# git checkout -b "$TMP_BR_BASE" && git pull origin -u "$TMP_BR_BASE"
+# git checkout main && git checkout -b "$TMP_BR_BASE" && git push origin -u "$TMP_BR_BASE"
 # gh pr create --head "${TMP_BR_HEAD}" --base "${TMP_BR_BASE}" --title "Test Triggering Workflows, when this Merges" --body "This PR is for testing purposes only. Please ignore."
 
 # git merge "${TMP_BR_HEAD}" --no-ff --no-edit && git push
