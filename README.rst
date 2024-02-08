@@ -173,3 +173,4 @@ License
     :alt: Technical Debt
     :target: https://codeclimate.com/github/boromir674/cicd-test
 Hello, world!
+Hello, world!
