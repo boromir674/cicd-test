@@ -59,15 +59,14 @@ def test_workflow_and_its_jobs_are_green(
         workflow_runs: t.Dict = workflow_runs_response.json()
         new_runs_sequence = list(workflow_runs["workflow_runs"])
         if len(new_runs_sequence) == 0:
-            new_latest_run = 0
+            new_latest_run_nb = 0
         else:
-            new_latest_run: int = max(
-                new_runs_sequence, key=lambda x: x["run_number"]
-            )
-        runner_triggered = new_latest_run['run_number'] == latest_run_nb + 1
+            new_latest_run: int = max(new_runs_sequence, key=lambda x: x["run_number"])
+            new_latest_run_nb = new_latest_run['run_number']
+        runner_triggered = new_latest_run_nb == latest_run_nb + 1
 
     # THEN Workflow number of runs, increases by 1
-    assert new_latest_run['run_number'] == latest_run_nb + 1
+    assert new_latest_run_nb == latest_run_nb + 1
 
     run_id = new_latest_run.get("id")
     assert run_id, f"Failed to find the workflow run id for {workflow_id}"

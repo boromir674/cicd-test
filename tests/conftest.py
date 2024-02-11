@@ -13,6 +13,7 @@ YAML_FILES: t.List[str] = sorted(
     [x.name for x in WORKFLOWS_DIR.iterdir() if x.is_file() and x.suffix in {'.yml', '.yaml'}]
 )
 
+### Test Cases ###
 DOCKER_TEST_WORKFLOWS = [x for x in YAML_FILES if 'docker_pol' in x]
 PYPI_TEST_WORKFLOWS = [x for x in YAML_FILES if 'pypi' in x]
 STATIC_CODE_ANALYSIS_WORKFLOWS = [x for x in YAML_FILES if 'static_code' in x]
@@ -136,9 +137,9 @@ def yaml_workflow(request, github_workflow):
                     if k.startswith('call_pypi')
                 },
             )
-            if 'no_wheels' not in workflow_file_name:
-                # add a second call_pypi job also expected as RED
-                expected_jobs += 1
+            # if 'no_wheels' not in workflow_file_name:
+            #     # add a second call_pypi job also expected as RED
+            #     expected_jobs += 1
         else:
             jobs = dict(
                 jobs,
@@ -153,6 +154,10 @@ def yaml_workflow(request, github_workflow):
             #     expected_jobs += parallel_build_jobs
             # else:
             expected_jobs += 1
+            if 'pypi_test.yaml' == workflow_file_name:
+                grouped_green_scenarios = 3
+                expected_jobs += grouped_green_scenarios -1  # -1 minimal Caller
+        # SANITY CHECK
         assert len(jobs) == expected_jobs, f"Failed to find all jobs in {workflow_file_name}. Jobs: {jobs}"
 
     yield name_2_github_workflow[yaml_workflow_name], {

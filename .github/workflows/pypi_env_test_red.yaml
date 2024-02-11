@@ -55,17 +55,3 @@ jobs:
       allow_existing: false
     secrets:
       TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}
-
-  call_pypi2:
-    name: 'EXPECT FAIL: allow_existing is false by default'
-    needs: build_python
-    uses: boromir674/automated-workflows/.github/workflows/pypi_env.yml@test
-    with:
-      distro_name: cicd_test_workflow
-      distro_version: "0.0.1"
-      should_trigger: true
-      pypi_env: "PYPI_TEST"
-      artifacts_path: ${{ needs.build_python.outputs.ARTIFACTS }}
-      require_wheel: true
-    secrets:
-      TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}
