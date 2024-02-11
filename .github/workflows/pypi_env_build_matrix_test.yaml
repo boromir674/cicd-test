@@ -22,7 +22,6 @@ jobs:
 
   read_job_matrix:
     runs-on: ubuntu-latest
-    name: Build Python
     steps:
       - id: pass_env_to_output
         run: |
@@ -31,7 +30,7 @@ jobs:
       matrix: ${{ steps.pass_env_to_output.outputs.matrix }}
 
   build_python:
-    name: Build Python
+    # name: Build Python
     runs-on: ${{ matrix.platform }}
     needs: read_job_matrix
     strategy:
