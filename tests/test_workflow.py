@@ -129,7 +129,10 @@ def test_workflow_and_its_jobs_are_green(
                 f"Error: {str(error)}\n"
                 f"[ERROR] Job {job_key} not found in expected jobs.\n\n"
                 "Expected Jobs: " + '[' + ', '.join(sorted(expected_jobs.keys())) + ']\n\n'
-                "Actual Jobs: " + '[' + ', '.join(sorted([i['name'] for i in jobs_info['jobs']])) + ']'
+                "Actual Jobs: "
+                + '['
+                + ', '.join(sorted([i['name'] for i in jobs_info['jobs']]))
+                + ']'
                 "\n\n"
                 "It might be that one Yaml Job utilizes a Workflow Strategy (aka Job Matrix), which spawns multiple jobs at runtime.\n"
                 "In this case, please convert the runtime key to match the one in the Expected Jobs Dict keys.\n"

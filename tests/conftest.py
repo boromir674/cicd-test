@@ -153,12 +153,15 @@ def yaml_workflow(request, github_workflow):
             #     parallel_build_jobs = 2
             #     expected_jobs += parallel_build_jobs
             # else:
-            expected_jobs += 1
             if 'pypi_test.yaml' == workflow_file_name:
                 grouped_green_scenarios = 3
-                expected_jobs += grouped_green_scenarios -1  # -1 minimal Caller
+                expected_jobs += grouped_green_scenarios - 1  # -1 minimal Caller
+            else:
+                expected_jobs += 1
         # SANITY CHECK
-        assert len(jobs) == expected_jobs, f"Failed to find all jobs in {workflow_file_name}. Jobs: {jobs}"
+        assert (
+            len(jobs) == expected_jobs
+        ), f"Failed to find all jobs in {workflow_file_name}. Jobs: {jobs}"
 
     yield name_2_github_workflow[yaml_workflow_name], {
         'conclusion': 'success' if 'red' not in workflow_file_name else 'failure',
