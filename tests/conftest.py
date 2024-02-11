@@ -38,6 +38,10 @@ def yaml_workflow(request, github_workflow):
         for k, v in yaml_workflow['jobs'].items()
     }
 
+    # Expectations for Jobs are generally Green, except for Test Cases that
+    # emulate failures (RED)
+
+    # Here we derive/declare the Expectations, to assert on, for the Workflow
     if 'docker' in workflow_file_name:
         if 'pol0' in workflow_file_name:
             jobs = dict(
@@ -121,6 +125,8 @@ def yaml_workflow(request, github_workflow):
                 ), f"Failed to find all jobs in {workflow_file_name}. Jobs: {jobs}"
 
     if 'pypi' in workflow_file_name:
+        # minimum expected Jobs are 2: 'Prepare Job', 'Call Workflow Job'
+        expected_jobs = 2
         if 'red' in workflow_file_name:
             jobs = dict(
                 jobs,
@@ -130,6 +136,9 @@ def yaml_workflow(request, github_workflow):
                     if k.startswith('call_pypi')
                 },
             )
+            if 'no_wheels' not in workflow_file_name:
+                # add a second call_pypi job also expected as RED
+                expected_jobs += 1
         else:
             jobs = dict(
                 jobs,
@@ -139,7 +148,12 @@ def yaml_workflow(request, github_workflow):
                     if k.startswith('call_pypi')
                 },
             )
-        assert len(jobs) == 3, f"Failed to find all jobs in {workflow_file_name}. Jobs: {jobs}"
+            # if 'build_matrix' in workflow_file_name:
+            #     parallel_build_jobs = 2
+            #     expected_jobs += parallel_build_jobs
+            # else:
+            expected_jobs += 1
+        assert len(jobs) == expected_jobs, f"Failed to find all jobs in {workflow_file_name}. Jobs: {jobs}"
 
     yield name_2_github_workflow[yaml_workflow_name], {
         'conclusion': 'success' if 'red' not in workflow_file_name else 'failure',

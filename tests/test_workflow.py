@@ -1,3 +1,6 @@
+import typing as t
+
+
 def test_workflow_and_its_jobs_are_green(
     trigger_workflow,
     get_workflow_runs,
@@ -5,7 +8,6 @@ def test_workflow_and_its_jobs_are_green(
     yaml_workflow,
 ):
     import time
-    import typing as t
 
     import requests
 
@@ -105,7 +107,20 @@ def test_workflow_and_its_jobs_are_green(
         # we remove that part, for "defensive-programming"
         job_key: str = job["name"].split(" / ")[0]
 
-        expected_job_conclusion: str = expectations["jobs"][job_key]
+        # take care of 'Job Matrix' case, where 1 YAML Job may spawn multiple jobs at runtime
+        expected_jobs: t.MutableMapping['str', 'str'] = expectations["jobs"]
+        try:
+            expected_job_conclusion: str = expected_jobs[job_key]
+        except KeyError as error:
+            print(
+                f"Error: {str(error)}\n"
+                f"[ERROR] Job {job_key} not found in expected jobs.\n\n"
+                "Expected Jobs: " + '[' + ', '.join(sorted(expected_jobs.keys())) + ']\n\n'
+                "Actual Jobs: " + '[' + ', '.join(sorted([i['name'] for i in jobs_info['jobs']])) + ']'
+                "\n\n"
+                "It might be that one Yaml Job utilizes a Workflow Strategy (aka Job Matrix), which spawns multiple jobs at runtime."
+            )
+            raise error
         assert (
             job["conclusion"] == expected_job_conclusion
         ), f"Job {job['name']} Completed with conclusion: {job['conclusion']}. But We expected conclusion {expected_job_conclusion}."
