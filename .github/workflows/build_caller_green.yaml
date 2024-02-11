@@ -1,10 +1,6 @@
 name: "GREEN: Test Build Caller Pol 1"
 
-# GitOps:
-
-# export tt=build-g
-# git tag -d "$tt"; git push --delete origin "$tt";
-# git tag "$tt" && git push origin "$tt"
+# export tt=build-g; git tag -d "$tt"; git push --delete origin "$tt"; git tag "$tt" && git push origin "$tt"
 
 on:
   workflow_dispatch:
@@ -20,8 +16,6 @@ jobs:
   call_test_build_job:
     uses: boromir674/automated-workflows/.github/workflows/test_build.yml@test
     with:
-      distro_name: cicd_test_workflow
-      pep440_version: '0.0.1'
       run_policy: '1'
       typecheck_policy: '1'
 
