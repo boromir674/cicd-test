@@ -1,4 +1,4 @@
-name: "RED: Test PyPI no Required Wheel(s) Upload Job"
+name: "RED: Test PyPI missing Required Wheel(s)"
 
 on:
   workflow_dispatch:

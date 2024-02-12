@@ -14,7 +14,7 @@ YAML_FILES: t.List[str] = sorted(
 )
 
 ### Test Cases ###
-DOCKER_TEST_WORKFLOWS = [x for x in YAML_FILES if 'docker_pol' in x]
+DOCKER_TEST_WORKFLOWS = [x for x in YAML_FILES if 'docker_pol' in x or 'docker_test' in x]
 PYPI_TEST_WORKFLOWS = [x for x in YAML_FILES if 'pypi' in x]
 STATIC_CODE_ANALYSIS_WORKFLOWS = [x for x in YAML_FILES if 'static_code' in x]
 VISUALIZE_PYTHON_IMPORTS_WORKFLOWS = [x for x in YAML_FILES if 'code_viz' in x]
