@@ -51,6 +51,7 @@ jobs:
       - name: Find open PRs with Head '${{ env.USER_BRANCH }}' and Base '${{ env.BOARDING_BRANCH }}'
         env:
           BOARDING_BRANCH: ${{ steps.boarding_branch.outputs.BOARDING_BRANCH }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           prs=$(gh pr list --state open --head "${{ env.USER_BRANCH }}" --base "${{ env.BOARDING_BRANCH }}" --json number)
           echo "Open PRs to Boarding: $prs"
@@ -93,6 +94,8 @@ jobs:
     steps:
       # Verify PR Opened USER_BRANCH  -->  BOARDING_BRANCH
       - name: Verify PR Opened ${{ needs.sanity_check_no_prs_open_already.outputs.EXPECTED_USER_BRANCH }}  -->  ${{ needs.sanity_check_no_prs_open_already.outputs.EXPECTED_BOARDING_BRANCH }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           prs=$(gh pr list --state open --head "${{ needs.sanity_check_no_prs_open_already.outputs.EXPECTED_USER_BRANCH }}" --base "${{ needs.sanity_check_no_prs_open_already.outputs.EXPECTED_BOARDING_BRANCH }}" --json number)
           echo "Open PRs to Boarding: $prs"
