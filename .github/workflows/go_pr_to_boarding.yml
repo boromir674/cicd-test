@@ -87,9 +87,9 @@ jobs:
     with:
       board_tag: ${{ needs.sanity_check_no_prs_open_already.outputs.WORFKLOW_INPUT_PREFIX }}
       main_branch: ${{ needs.sanity_check_no_prs_open_already.outputs.WORFKLOW_INPUT_MAIN_BRANCH }}
-    # secrets:
-    #   # pass token provided by github
-    #   github_pat: ${{ secrets.GITHUB_TOKEN }}
+    secrets:
+      # pass token provided by github
+      github_pat: ${{ secrets.PAT_FOR_CONTENT_AND_PRS }}
 
   # ASSERTIONS
   verify_pr_opened:
