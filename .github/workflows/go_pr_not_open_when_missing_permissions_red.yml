@@ -1,0 +1,132 @@
+name: "RED: Test PR NOT Open when token missing Permissions"
+
+# export tt='go-pr-to-boarding-r'; git tag -d "$tt"; git push --delete origin "$tt"; git tag "$tt" && git push origin "$tt"
+
+on:
+  workflow_dispatch:  # allows invoking from python Automated Tests
+  push:
+    branches:
+      - "test"
+    tags:
+      - "all"
+      - "go-pr-to-boarding"
+      - "go-pr-to-boarding-r"  # RED
+
+env:
+  string_prefix: "unit-test-red-tag"
+  main_branch: "main"
+
+jobs:
+  sanity_check_no_prs_open_already:
+    name: 'Sanity Check: No PRs Open to Boarding'
+    runs-on: ubuntu-latest
+    steps:
+      # Find Upstream Branch, pointing to the same commit as the Pushed Tag
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch all history for tags and branches
+          set-safe-directory: ''  # `git config --global --add safe.directory <path>`
+          # token: '${{ secrets.github_pat }}'  # PAT with permissions to create PRs
+
+      - name: Discover User's Branch Name
+        id: user_branch
+        run: |
+          name=$(git branch -a --contains "$(git rev-parse HEAD)" | sed -n '2p' | sed 's/.*origin\///')
+          echo "NAME:" $name
+          echo USER_BRANCH=$name >> $GITHUB_ENV
+          echo USER_BRANCH=$name >> $GITHUB_OUTPUT
+
+      # this is a Test Suite, if User branch is not main echo warning
+      - name: "Expect User Branch '${{ env.USER_BRANCH }}' to be Main/Master: '${{ env.main_branch }}'"
+        # if: env.USER_BRANCH != "${{ env.main_branch }}"
+        run: |
+          if [ "${{ env.USER_BRANCH }}" != "${{ env.main_branch }}" ]; then
+            echo "[WARNING] User Branch '${{ env.USER_BRANCH }}' is not Main/Master: '${{ env.main_branch }}'"
+          fi
+
+      - name: Find expected name for 'Boarding' branch
+        id: boarding_branch
+        run: echo "BOARDING_BRANCH=${{ env.string_prefix }}-${{ env.main_branch }}" >> $GITHUB_OUTPUT
+
+      # SANITY Check: NO PR Opened USER_BRANCH  -->  BOARDING_BRANCH
+      - name: Sanity check no Open PR with Head '${{ env.USER_BRANCH }}' and Base '${{ env.BOARDING_BRANCH }}' exists
+        env:
+          BOARDING_BRANCH: ${{ steps.boarding_branch.outputs.BOARDING_BRANCH }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          prs=$(gh pr list --state open --head "${{ env.USER_BRANCH }}" --base "${{ env.BOARDING_BRANCH }}" --json number)
+          echo "Open PRs to Boarding: $prs"
+          # make sure returned value is empty list: []
+          # here we compare $prs to the '[]' string
+          if [ "$prs" != "[]" ]; then
+            echo "[ERROR] Open PR '${{ env.USER_BRANCH }}'  -->  '${{ env.BOARDING_BRANCH }}' found!"
+            echo "[INFO] This Test Scenario requires no open PR to Boarding. Exiting.."
+            exit 1
+          fi
+
+      # Read TEST DATA to pass to CALLED open_pr_to_boarding Workflow
+      # We do that simply because github does not allow to pass env vars to the called workflow!
+      - run: echo "WORFKLOW_INPUT_PREFIX=${{ env.string_prefix }}" >> $GITHUB_OUTPUT
+        id: workflow_input_prefix
+      - run: echo "WORFKLOW_INPUT_MAIN_BRANCH=${{ env.main_branch }}" >> $GITHUB_OUTPUT
+        id: workflow_input_main_branch
+    outputs:
+      EXPECTED_USER_BRANCH: ${{ steps.user_branch.outputs.USER_BRANCH }}
+      EXPECTED_BOARDING_BRANCH: ${{ steps.boarding_branch.outputs.BOARDING_BRANCH }}
+      WORFKLOW_INPUT_PREFIX: ${{ steps.workflow_input_prefix.outputs.WORFKLOW_INPUT_PREFIX }}
+      WORFKLOW_INPUT_MAIN_BRANCH: ${{ steps.workflow_input_main_branch.outputs.WORFKLOW_INPUT_MAIN_BRANCH }}
+
+  # CALL - GIT OPS PR to BOARDING WORKFLOW
+  open_pr_to_boarding:
+    name: Open PR to Boarding
+    permissions:
+      contents: read
+      pull-requests: write
+    needs: sanity_check_no_prs_open_already
+    uses: boromir674/automated-workflows/.github/workflows/go-pr-to-boarding.yml@test
+    with:
+      board_tag: ${{ needs.sanity_check_no_prs_open_already.outputs.WORFKLOW_INPUT_PREFIX }}
+      main_branch: ${{ needs.sanity_check_no_prs_open_already.outputs.WORFKLOW_INPUT_MAIN_BRANCH }}
+    secrets:
+      # pass token provided by github
+      github_pat: ${{ secrets.GITHUB_TOKEN }}
+
+  # ASSERTIONS
+  verify_pr_opened:
+    name: Verify PR Opened to Boarding
+    needs: [open_pr_to_boarding, sanity_check_no_prs_open_already]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # Verify PR Opened USER_BRANCH  -->  BOARDING_BRANCH
+      - name: Verify PR Opened ${{ needs.sanity_check_no_prs_open_already.outputs.EXPECTED_USER_BRANCH }}  -->  ${{ needs.sanity_check_no_prs_open_already.outputs.EXPECTED_BOARDING_BRANCH }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          prs=$(gh pr list --state open --head "${{ needs.sanity_check_no_prs_open_already.outputs.EXPECTED_USER_BRANCH }}" --base "${{ needs.sanity_check_no_prs_open_already.outputs.EXPECTED_BOARDING_BRANCH }}" --json number)
+          echo "Open PRs to Boarding: $prs"
+          # exit with error if open PR not found
+          if [ -z "$prs" ]; then
+            echo "[ERROR] No open PR '${{ needs.sanity_check_no_prs_open_already.outputs.EXPECTED_USER_BRANCH }}'  -->  '${{ needs.sanity_check_no_prs_open_already.outputs.EXPECTED_BOARDING_BRANCH }}' found!"
+            echo "[INFO] This Test Scenario requires open PR to Boarding. Exiting.."
+            exit 1
+          fi
+          # extract PR ID and output it
+          pr_id=$(echo $prs | jq -r '.[0].number')
+          echo "OPENED_PR_ID=$pr_id" >> $GITHUB_OUTPUT
+        id: verify_opened_pr
+    outputs:
+      OPENED_PR_ID: ${{ steps.verify_opened_pr.outputs.OPENED_PR_ID }}
+
+  # CLEAN UP
+  close_pr_to_boarding:
+    name: Close PR to Boarding
+    needs: verify_pr_opened
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Close PR
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr close ${{ needs.verify_pr_opened.outputs.OPENED_PR_ID }} -c "Closing PR, which was opened as an effect of calling a Workflow, to Test/Verify/Assert its behaviour."
