@@ -79,6 +79,9 @@ jobs:
   # CALL - GIT OPS PR to BOARDING WORKFLOW
   open_pr_to_boarding:
     name: Open PR to Boarding
+    permissions:
+      contents: read
+      pull-requests: write
     needs: sanity_check_no_prs_open_already
     uses: boromir674/automated-workflows/.github/workflows/go-pr-to-boarding.yml@test
     with:
