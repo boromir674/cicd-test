@@ -13,7 +13,7 @@ on:
       - "go-pr-to-boarding-g"  # GREEN
 
 env:
-  string_prefix: "unit-test-tag"
+  string_prefix: "unit-test-green-tag"
   main_branch: "main"
 
 jobs:
