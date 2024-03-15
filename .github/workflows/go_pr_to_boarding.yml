@@ -113,7 +113,7 @@ jobs:
           fi
           # extract PR ID and output it
           pr_id=$(echo $prs | jq -r '.[0].number')
-          echo "PR_OPENED=$pr_id" >> $GITHUB_OUTPUT
+          echo "OPENED_PR_ID=$pr_id" >> $GITHUB_OUTPUT
         id: verify_opened_pr
     outputs:
       OPENED_PR_ID: ${{ steps.verify_opened_pr.outputs.OPENED_PR_ID }}
