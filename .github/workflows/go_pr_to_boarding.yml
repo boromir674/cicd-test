@@ -38,8 +38,11 @@ jobs:
 
       # this is a Test Suite, if User branch is not main echo warning
       - name: "Expect User Branch '${{ env.USER_BRANCH }}' to be Main/Master: '${{ env.main_branch }}'"
-        if: env.USER_BRANCH != "${{ env.main_branch }}"
-        run: "echo \"[WARNING] User Branch '${{ env.USER_BRANCH }}' is not Main/Master: '${{ env.main_branch }}'\""
+        # if: env.USER_BRANCH != "${{ env.main_branch }}"
+        run: |
+          if [ "${{ env.USER_BRANCH }}" != "${{ env.main_branch }}" ]; then
+            echo "[WARNING] User Branch '${{ env.USER_BRANCH }}' is not Main/Master: '${{ env.main_branch }}'"
+          fi
 
       - name: Find expected name for 'Boarding' branch
         id: boarding_branch
