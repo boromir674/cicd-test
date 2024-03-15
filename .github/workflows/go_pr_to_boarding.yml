@@ -66,9 +66,9 @@ jobs:
 
       # Read TEST DATA to pass to CALLED open_pr_to_boarding Workflow
       # We do that simply because github does not allow to pass env vars to the called workflow!
-      - run: echo "WORFKLOW_INPUT_PREFIX=${env.string_prefix}" >> $GITHUB_OUTPUT
+      - run: echo "WORFKLOW_INPUT_PREFIX=${{ env.string_prefix }}" >> $GITHUB_OUTPUT
         id: workflow_input_prefix
-      - run: echo "WORFKLOW_INPUT_MAIN_BRANCH=${env.main_branch}" >> $GITHUB_OUTPUT
+      - run: echo "WORFKLOW_INPUT_MAIN_BRANCH=${{ env.main_branch }}" >> $GITHUB_OUTPUT
         id: workflow_input_main_branch
     outputs:
       EXPECTED_USER_BRANCH: ${{ steps.user_branch.outputs.USER_BRANCH }}
