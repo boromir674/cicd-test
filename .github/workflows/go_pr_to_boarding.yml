@@ -97,6 +97,7 @@ jobs:
     needs: [open_pr_to_boarding, sanity_check_no_prs_open_already]
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
       # Verify PR Opened USER_BRANCH  -->  BOARDING_BRANCH
       - name: Verify PR Opened ${{ needs.sanity_check_no_prs_open_already.outputs.EXPECTED_USER_BRANCH }}  -->  ${{ needs.sanity_check_no_prs_open_already.outputs.EXPECTED_BOARDING_BRANCH }}
         env:
@@ -123,6 +124,7 @@ jobs:
     needs: verify_pr_opened
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
       - name: Close PR
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
