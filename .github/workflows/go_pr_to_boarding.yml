@@ -48,16 +48,18 @@ jobs:
         id: boarding_branch
         run: echo "BOARDING_BRANCH=${{ env.string_prefix }}-${{ env.main_branch }}" >> $GITHUB_OUTPUT
 
-      - name: Find open PRs with Head '${{ env.USER_BRANCH }}' and Base '${{ env.BOARDING_BRANCH }}'
+      # SANITY Check: NO PR Opened USER_BRANCH  -->  BOARDING_BRANCH
+      - name: Sanity check no Open PR with Head '${{ env.USER_BRANCH }}' and Base '${{ env.BOARDING_BRANCH }}' exists
         env:
           BOARDING_BRANCH: ${{ steps.boarding_branch.outputs.BOARDING_BRANCH }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           prs=$(gh pr list --state open --head "${{ env.USER_BRANCH }}" --base "${{ env.BOARDING_BRANCH }}" --json number)
           echo "Open PRs to Boarding: $prs"
-          # exit with error if open PR found
-          if [ -n "$prs" ]; then
-            echo "[ERROR] Already open PR '${{ env.USER_BRANCH }}'  -->  '${{ env.BOARDING_BRANCH }}' found!"
+          # make sure returned value is empty list: []
+          # here we compare $prs to the '[]' string
+          if [ "$prs" != "[]" ]; then
+            echo "[ERROR] Open PR '${{ env.USER_BRANCH }}'  -->  '${{ env.BOARDING_BRANCH }}' found!"
             echo "[INFO] This Test Scenario requires no open PR to Boarding. Exiting.."
             exit 1
           fi
