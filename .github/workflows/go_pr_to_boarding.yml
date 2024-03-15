@@ -1,0 +1,111 @@
+name: "GREEN: Test Git Ops PR to Boarding Workflow"
+
+# export tt='v-sca-g-1.0.0'
+# git tag -d "$tt"; git push --delete origin "$tt"; git tag "$tt" && git push origin "$tt"
+
+on:
+  workflow_dispatch:  # allows invoking from python Automated Tests
+  push:
+    branches:
+      - "test"
+    tags:
+      - "all"
+      - "go-pr-to-boarding"
+      - "go-pr-to-boarding-g"  # GREEN
+
+env:
+  string_prefix: "unit-test-tag"
+  main_branch: "main"
+
+jobs:
+  sanity_check_no_prs_open_already:
+    name: 'Sanity Check: No PRs Open to Boarding'
+    runs-on: ubuntu-latest
+    steps:
+      # Find Upstream Branch, pointing to the same commit as the Pushed Tag
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch all history for tags and branches
+          set-safe-directory: ''  # `git config --global --add safe.directory <path>`
+          # token: '${{ secrets.github_pat }}'  # PAT with permissions to create PRs
+
+      - name: Discover User's Branch Name
+        id: user_branch
+        run: |
+          name=$(git branch -a --contains "$(git rev-parse HEAD)" | sed -n '2p' | sed 's/.*origin\///')
+          echo "NAME:" $name
+          echo USER_BRANCH=$name >> $GITHUB_ENV
+          echo USER_BRANCH=$name >> $GITHUB_OUTPUT
+
+      # this is a Test Suite, if User branch is not main echo warning
+      - name: "Expect User Branch '${{ env.USER_BRANCH }}' to be Main/Master: '${{ env.main_branch }}'"
+        if: env.USER_BRANCH != "${{ env.main_branch }}"
+        run: "echo \"[WARNING] User Branch '${{ env.USER_BRANCH }}' is not Main/Master: '${{ env.main_branch }}'\""
+
+      - name: Find expected name for 'Boarding' branch
+        id: boarding_branch
+        run: echo "BOARDING_BRANCH=${{ env.string_prefix }}-${{ env.main_branch }}" >> $GITHUB_OUTPUT
+
+      - name: Find open PRs with Head '${{ env.USER_BRANCH }}' and Base '${{ env.BOARDING_BRANCH }}'
+        env:
+          BOARDING_BRANCH: ${{ steps.boarding_branch.outputs.BOARDING_BRANCH }}
+        run: |
+          prs=$(gh pr list --state open --head "${{ env.USER_BRANCH }}" --base "${{ env.BOARDING_BRANCH }}" --json number)
+          echo "Open PRs to Boarding: $prs"
+          # exit with error if open PR found
+          if [ -n "$prs" ]; then
+            echo "[ERROR] Already open PR '${{ env.USER_BRANCH }}'  -->  '${{ env.BOARDING_BRANCH }}' found!"
+            echo "[INFO] This Test Scenario requires no open PR to Boarding. Exiting.."
+            exit 1
+          fi
+    outputs:
+      EXPECTED_USER_BRANCH: ${{ steps.user_branch.outputs.USER_BRANCH }}
+      EXPECTED_BOARDING_BRANCH: ${{ steps.boarding_branch.outputs.BOARDING_BRANCH }}
+
+  # CALL - GIT OPS PR to BOARDING WORKFLOW
+  open_pr_to_boarding:
+    name: Open PR to Boarding
+    needs: sanity_check_no_prs_open_already
+    uses: boromir674/automated-workflows/.github/workflows/go-pr-to-boarding.yml@test
+    with:
+      board_tag: ${{ env.string_prefix }}
+      main_branch: ${{ env.main_branch }}
+    secrets:
+      # pass token provided by github
+      github_pat: ${{ secrets.GITHUB_TOKEN }}
+
+  # ASSERTIONS
+  verify_pr_opened:
+    name: Verify PR Opened to Boarding
+    needs: [open_pr_to_boarding, sanity_check_no_prs_open_already]
+    runs-on: ubuntu-latest
+    steps:
+      # Verify PR Opened USER_BRANCH  -->  BOARDING_BRANCH
+      - name: Verify PR Opened ${{ needs.sanity_check_no_prs_open_already.outputs.EXPECTED_USER_BRANCH }}  -->  ${{ needs.sanity_check_no_prs_open_already.outputs.EXPECTED_BOARDING_BRANCH }}
+        run: |
+          prs=$(gh pr list --state open --head "${{ needs.sanity_check_no_prs_open_already.outputs.EXPECTED_USER_BRANCH }}" --base "${{ needs.sanity_check_no_prs_open_already.outputs.EXPECTED_BOARDING_BRANCH }}" --json number)
+          echo "Open PRs to Boarding: $prs"
+          # exit with error if open PR not found
+          if [ -z "$prs" ]; then
+            echo "[ERROR] No open PR '${{ needs.sanity_check_no_prs_open_already.outputs.EXPECTED_USER_BRANCH }}'  -->  '${{ needs.sanity_check_no_prs_open_already.outputs.EXPECTED_BOARDING_BRANCH }}' found!"
+            echo "[INFO] This Test Scenario requires open PR to Boarding. Exiting.."
+            exit 1
+          fi
+          # extract PR ID and output it
+          pr_id=$(echo $prs | jq -r '.[0].number')
+          echo "PR_OPENED=$pr_id" >> $GITHUB_OUTPUT
+        id: verify_opened_pr
+    outputs:
+      OPENED_PR_ID: ${{ steps.verify_opened_pr.outputs.OPENED_PR_ID }}
+
+  # CLEAN UP
+  close_pr_to_boarding:
+    name: Close PR to Boarding
+    needs: verify_pr_opened
+    runs-on: ubuntu-latest
+    steps:
+      - name: Close PR
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr close ${{ needs.verify_pr_opened.outputs.OPENED_PR_ID }} -c "Closing PR, which was opened as an effect of calling a Workflow, to Test/Verify/Assert its behaviour."
