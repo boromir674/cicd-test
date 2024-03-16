@@ -111,7 +111,9 @@ def test_workflow_and_its_jobs_are_green(
     # Assertions on individual job statuses
     for job in jobs_info["jobs"]:
         print(f"[DEBUG] Job {job['name']} Completed with conclusion: {job['conclusion']}")
-        assert job["status"] == COMPLETED_STATUS, f"Job {job['name']} of Workflow {workflow_name} did not complete. Status: {job['status']}, but we expected {COMPLETED_STATUS}."
+        assert (
+            job["status"] == COMPLETED_STATUS
+        ), f"Job {job['name']} of Workflow {workflow_name} did not complete. Status: {job['status']}, but we expected {COMPLETED_STATUS}."
 
         # At runtime all Caller Jobs get their names (as rendered on gh actions UI) appended with the Called workflow name
         # we remove that part, for "defensive-programming"
