@@ -15,6 +15,8 @@ def test_workflow_and_its_jobs_are_green(
     repo = "cicd-test"
     import os
 
+    # Bearer Token to put in HTTP Request Headers as "Authorization": f"Bearer {github_token}"
+    # when calling api.github.com API endpoints
     TOKEN_ENV_VAR: str = "CICD_TEST_GH_TOKEN"
     token = os.environ.get(TOKEN_ENV_VAR)
 
