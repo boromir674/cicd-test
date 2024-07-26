@@ -1,0 +1,39 @@
+name: "GREEN: Test Single Status is Green, when called as expected"
+# Workflow acting as host of Test Cases
+
+# export tt=ssj-g; git tag -d "$tt"; git push --delete origin "$tt"; git tag "$tt" && git push origin "$tt"
+
+
+on:
+  # allow Automated Test Suite to on-demand run this Test Workflow, using Github API
+  workflow_dispatch:
+  push:
+    # Continuously run CI on 'test' branch, including this Test Workflow
+    branches:
+      - "test"
+    # allow push events for tags all, ssj, and ssj-g to trigger this Test Workflow
+    tags:
+      - "all"
+      - "ssj"
+      - "ssj-g"
+
+
+env:
+  case_1111_ci_tests_pass: true
+  case_0011_ci_tests_skiped: true
+
+
+jobs:
+
+  emulated_qa_job1:
+    runs-on: 'ubuntu-latest'
+    steps:
+      - run: echo "Green"
+
+  # TEST Case 1 - Only needs_json passed as inputs to Called Workflow
+  call_passing_only_needs_json:
+    needs:
+      - emulated_qa_job1
+    uses: boromir674/automated-workflows/.github/workflows/go-single-status.yml@test
+    with:
+      needs_json: ${{ toJson(needs) }}
