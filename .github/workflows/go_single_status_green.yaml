@@ -25,15 +25,34 @@ env:
 
 jobs:
 
-  emulated_qa_job1:
+  emulated_green_qa_job1:
     runs-on: 'ubuntu-latest'
     steps:
       - run: echo "Green"
 
+  emulated_skipped_qa_job2:
+    runs-on: 'ubuntu-latest'
+    if: false
+    steps:
+      - run: echo "Skipped"
+
   # TEST Case 1 - Only needs_json passed as inputs to Called Workflow
   call_passing_only_needs_json:
     needs:
-      - emulated_qa_job1
+      - emulated_green_qa_job1
     uses: boromir674/automated-workflows/.github/workflows/go-single-status.yml@test
     with:
       needs_json: ${{ toJson(needs) }}
+
+  # TEST Case 2
+  # needs_json passed in
+  # allowed-skips is passed as strict subset of needs_json
+  call_with_more_needed_than_allow_skipped:
+    if: always()
+    needs:
+      - emulated_green_qa_job1
+      - emulated_skipped_qa_job2
+    uses: boromir674/automated-workflows/.github/workflows/go-single-status.yml@test
+    with:
+      needs_json: ${{ toJson(needs) }}
+      allowed-skips: 'emulated_skipped_qa_job2'
