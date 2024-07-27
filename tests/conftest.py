@@ -20,6 +20,7 @@ STATIC_CODE_ANALYSIS_WORKFLOWS = [x for x in YAML_FILES if 'static_code' in x]
 VISUALIZE_PYTHON_IMPORTS_WORKFLOWS = [x for x in YAML_FILES if 'code_viz' in x]
 GO_SINGLE_STATUS_TEST_WORKFLOWS = [x for x in YAML_FILES if 'go_single_status_green' in x]
 
+
 @pytest.fixture(
     params=DOCKER_TEST_WORKFLOWS
     + PYPI_TEST_WORKFLOWS
@@ -168,7 +169,7 @@ def yaml_workflow(request, github_workflow):
     yield name_2_github_workflow[yaml_workflow_name], {
         'conclusion': 'success' if 'red' not in workflow_file_name else 'failure',
         'status': 'completed',
-        'jobs': jobs,
+        'jobs': dict(jobs, call_with_more_needed_than_allow_skipped='success'),
     }
 
 

@@ -123,7 +123,7 @@ def test_workflow_and_its_jobs_are_green(
 
         # take care of 'Job Matrix' case, where 1 YAML Job may spawn multiple jobs at runtime
         # we use a minimal 2-Job Matrix where we convert Runtime Job name
-        # FROM 'build_python (ubuntu-latest, 3.10)' TO build_python
+        # from 'build_python (ubuntu-latest, 3.10)' to 'build_python'
         job_key = job_key.split(" (")[0]
 
         expected_jobs: t.MutableMapping['str', 'str'] = expectations["jobs"]
