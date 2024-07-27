@@ -18,13 +18,14 @@ DOCKER_TEST_WORKFLOWS = [x for x in YAML_FILES if 'docker_pol' in x or 'docker_t
 PYPI_TEST_WORKFLOWS = [x for x in YAML_FILES if 'pypi' in x]
 STATIC_CODE_ANALYSIS_WORKFLOWS = [x for x in YAML_FILES if 'static_code' in x]
 VISUALIZE_PYTHON_IMPORTS_WORKFLOWS = [x for x in YAML_FILES if 'code_viz' in x]
-
+GO_SINGLE_STATUS_TEST_WORKFLOWS = [x for x in YAML_FILES if 'go_single_status_green' in x]
 
 @pytest.fixture(
     params=DOCKER_TEST_WORKFLOWS
     + PYPI_TEST_WORKFLOWS
     + STATIC_CODE_ANALYSIS_WORKFLOWS
     + VISUALIZE_PYTHON_IMPORTS_WORKFLOWS
+    + GO_SINGLE_STATUS_TEST_WORKFLOWS
 )
 def yaml_workflow(request, github_workflow):
     import yaml
@@ -43,6 +44,7 @@ def yaml_workflow(request, github_workflow):
     # emulate failures (RED)
 
     # Here we derive/declare the Expectations, to assert on, for the Workflow
+    # If new workflow expects some Red Status, it should be declared below
     if 'docker' in workflow_file_name:
         if 'pol0' in workflow_file_name:
             jobs = dict(
