@@ -1,4 +1,5 @@
 import typing as t
+
 import pytest
 
 # Pull Request Model for searching PRs
@@ -109,7 +110,7 @@ def verify_pr_opened_n_closed(
             assert len(prs) <= 2, f"States: {states}"
 
             if 'open' in states:
-                encountered_opened = True
+                print("[INFO] Encountered PR at Open state!")
             elif 'closed' in states:
                 encountered_closed = True
             elif len(states) == 0:
@@ -121,12 +122,12 @@ def verify_pr_opened_n_closed(
             time.sleep(3.5)
 
         # THEN verify PR has opened and closed from User Br to 'release' br
-        assert encountered_closed, f"Expecting to observe the PR status closed"
+        assert encountered_closed, "Expecting to observe the PR status closed"
 
         # get pr object with state == closed
         pr_closed = [x for x in prs if x['state'] == 'closed']
 
-        assert len(pr_closed) == 1, f"Expecting to observe the PR status closed once"
+        assert len(pr_closed) == 1, "Expecting to observe the PR status closed once"
 
         pr_closed = pr_closed[0]
 
@@ -135,7 +136,7 @@ def verify_pr_opened_n_closed(
             None,
             '',
             'None',
-        }, f"Expecting to observe the PR status closed with code merge"
+        }, "Expecting to observe the PR status closed with code merge"
 
     return _verify_pr_opened_n_closed
 
@@ -193,7 +194,7 @@ def verify_pr_opened():
             time.sleep(3.5)
 
         # THEN verify PR is open 'release' to 'main' branch
-        assert encountered_opened, f"Expecting to observe the PR status open"
+        assert encountered_opened, "Expecting to observe the PR status open"
 
     return _verify_pr_opened
 
