@@ -204,8 +204,8 @@ def test_pr_to_release_opened_n_closed(verify_pr_opened_n_closed):
     import os
 
     verify_pr_opened_n_closed(
-        head_branch=os.getenv("GO_HEAD_BRANCH"),
-        base_branch='release',
+        head_branch=os.getenv("GO_INCOMING_BRANCH"),
+        base_branch=os.getenv("GO_RELEASE_BRANCH"),
         github_token=os.getenv("GITHUB_TOKEN"),
     )
 
@@ -216,7 +216,7 @@ def test_pr_to_main_opened(verify_pr_opened):
     import os
 
     verify_pr_opened(
-        head_branch=os.getenv("GO_HEAD_BRANCH"),
+        head_branch=os.getenv("GO_RELEASE_BRANCH"),
         base_branch='main',
         github_token=os.getenv("GITHUB_TOKEN"),
     )

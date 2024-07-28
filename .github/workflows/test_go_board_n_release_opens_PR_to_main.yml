@@ -109,7 +109,8 @@ jobs:
       - name: Assert 'relase-me' git ops event 1st phase's state (PR to 'release' closed with merge, PR to 'main' opened) reached
         env:
           # pass in env vars required for test case
-          GO_HEAD_BRANCH: ${{ env._USER_BR }}
+          GO_INCOMING_BRANCH: ${{ env._USER_BR }}
+          GO_RELEASE_BRANCH: 'release'
           # if test code has auth issues pass in another token:
           # GITHUB_TOKEN: ${{ secrets.SOME_AUTHORIZED_GH_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.READ_PR_GITOPS_AUTOMATION }}
