@@ -95,7 +95,8 @@ def verify_pr_opened_n_closed(
 
     return _verify_pr_opened_n_closed
 
-
+# Requires prior Git Ops event
+@pytest.mark.gitops
 def test_pr_to_release_opened_n_closed(verify_pr_opened_n_closed):
     import os
     verify_pr_opened_n_closed(
