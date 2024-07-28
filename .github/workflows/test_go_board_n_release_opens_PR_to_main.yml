@@ -138,7 +138,7 @@ jobs:
           GO_HEAD_BRANCH: ${{ env._USER_BR }}
           # if test code has auth issues pass in another token:
           # GITHUB_TOKEN: ${{ secrets.SOME_AUTHORIZED_GH_TOKEN }}
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.READ_PR_GITOPS_AUTOMATION }}
         run: tox -vv -e test -- -vvs -k pr_to_release_opened_n_closed
 
 
