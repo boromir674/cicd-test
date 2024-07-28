@@ -98,7 +98,7 @@ def verify_pr_opened_n_closed(
 def test_pr_to_release_opened_n_closed(verify_pr_opened_n_closed):
     import os
     verify_pr_opened_n_closed(
-        head=os.getenv("GO_HEAD_BRANCH"),
-        base='release',
+        head_branch=os.getenv("GO_HEAD_BRANCH"),
+        base_branch='release',
         github_token=os.getenv("GITHUB_TOKEN"),
     )
