@@ -180,36 +180,20 @@ def verify_pr_opened():
             prs = get_pr_data()
             states = [x['state'] for x in prs]
 
-            assert len(prs) <= 2, f"States: {states}"
+            assert len(prs) <= 1, f"States: {states}"
 
             if 'open' in states:
                 encountered_opened = True
-            elif 'closed' in states:
-                encountered_closed = True
             elif len(states) == 0:
                 pass  # nothing found on remote github server
             else:
                 raise ValueError(f"Unexpected PR states: {states}")
 
-            stop_condition = encountered_closed or (start_time + time_limit < time.time())
+            stop_condition = encountered_opened or (start_time + time_limit < time.time())
             time.sleep(3.5)
 
-        # THEN verify PR has opened and closed from User Br to 'release' br
-        assert encountered_closed, f"Expecting to observe the PR status closed"
-
-        # get pr object with state == closed
-        pr_closed = [x for x in prs if x['state'] == 'closed']
-
-        assert len(pr_closed) == 1, f"Expecting to observe the PR status closed once"
-
-        pr_closed = pr_closed[0]
-
-        # assert PR closed with code merge
-        assert pr_closed['merged_at'] not in {
-            None,
-            '',
-            'None',
-        }, f"Expecting to observe the PR status closed with code merge"
+        # THEN verify PR is open 'release' to 'main' branch
+        assert encountered_opened, f"Expecting to observe the PR status open"
 
     return _verify_pr_opened
 
