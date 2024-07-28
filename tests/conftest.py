@@ -18,7 +18,9 @@ DOCKER_TEST_WORKFLOWS = [x for x in YAML_FILES if 'docker_pol' in x or 'docker_t
 PYPI_TEST_WORKFLOWS = [x for x in YAML_FILES if 'pypi' in x]
 STATIC_CODE_ANALYSIS_WORKFLOWS = [x for x in YAML_FILES if 'static_code' in x]
 VISUALIZE_PYTHON_IMPORTS_WORKFLOWS = [x for x in YAML_FILES if 'code_viz' in x]
+GO_PR = [x for x in YAML_FILES if 'go_pr_' in x]
 GO_SINGLE_STATUS_TEST_WORKFLOWS = [x for x in YAML_FILES if 'go_single_status_green' in x]
+GO_RELEASE_ME_PHASE_1_TEST_WORKFLOWS = [x for x in YAML_FILES if 'test_release_me_gitops_phase_1' in x]
 
 
 @pytest.fixture(
@@ -27,6 +29,7 @@ GO_SINGLE_STATUS_TEST_WORKFLOWS = [x for x in YAML_FILES if 'go_single_status_gr
     + STATIC_CODE_ANALYSIS_WORKFLOWS
     + VISUALIZE_PYTHON_IMPORTS_WORKFLOWS
     + GO_SINGLE_STATUS_TEST_WORKFLOWS
+    + GO_RELEASE_ME_PHASE_1_TEST_WORKFLOWS
 )
 def yaml_workflow(request, github_workflow):
     import yaml
