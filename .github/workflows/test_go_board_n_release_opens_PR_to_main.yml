@@ -103,7 +103,7 @@ jobs:
       # WHEN a 'board-n-release' event is fired from client repo
       - name: Fire 'board-n-release' git tag event, scoped on '${{ env._GO_REPO }}' repo
         env:
-          TAG: "board-n-release"
+          TAG: "release-me"
         working-directory: ${{ env._GO_DIR }}
         run: |
           # if tag exists on remote delete it
