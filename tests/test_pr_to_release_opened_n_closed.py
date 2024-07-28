@@ -90,6 +90,7 @@ def verify_pr_opened_n_closed(
             time.sleep(3.5)
 
         # THEN verify PR has opened and closed from User Br to 'release' br
+        assert encountered_closed, f"Expecting to observe the PR status closed"
         assert encountered_opened and encountered_closed, "Expecting to observe the PR status both opened and closed"
 
     return _verify_pr_opened_n_closed
