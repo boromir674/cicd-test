@@ -71,35 +71,6 @@ jobs:
         run: git push origin ${_USER_BR}
 
 
-      # - name: Push and Create User Branch on '${{ env._GO_REPO }}' repo
-      #   # Pin to v1.7.2 -> 07c4d7b3def0a8ebe788a8f2c843a4e1de4f6900
-      #   uses: cpina/github-action-push-to-another-repository@07c4d7b3def0a8ebe788a8f2c843a4e1de4f6900
-      #   env:
-      #     SSH_DEPLOY_KEY: ${{ secrets.SSH_DEPLOY_KEY }}
-      #   with:
-      #     source-directory: '${{ env._GO_DIR }}'
-      #     destination-github-username: ${{ env._GO_OWNER }}
-      #     destination-repository-name: ${{ env._GO_REPO_NAME }}
-      #     # git config --global user.name "Konstantinos Lampridis"
-      #     user-email: boromir674@hotmail.com
-      #     # git config --global user.email "boromir674@hotmail.com"
-      #     user-name: 'Konstantinos Lampridis'
-      #     destination-repository-username: ${{ env._GO_OWNER }}
-      #     target-branch: ${{ env._USER_BR }}
-      #     commit-message: "auto-commit: write (literally) the User's Branch name '${_USER_BR}' to a file"
-      #     create-target-branch-if-needed: true
-
-      # GIVEN it will not cause any merge conficts
-      # For now the User Br is create above and it clearly is a direct descendant of 'main'
-      # so it is guaranteed NO conflicts will occur
-      
-      # if need be we can merge 'main' first into 'user-branch' to guarantee no conflicts
-      # - name: Merge User Branch to 'main'
-      #   run: |
-      #     git checkout main
-      #     git merge ${_USER_BR}
-      #     git push origin main
-
       # WHEN a 'board-n-release' event is fired from client repo
       - name: Fire 'board-n-release' git tag event, scoped on '${{ env._GO_REPO }}' repo
         env:
@@ -131,15 +102,18 @@ jobs:
       - name: 'Build deterministic python virtual environment'
         run: tox -vv -e test --notest
 
-      # THEN assert PR has opened and closed from User Br to 'release' br
-      - name: Assert PR opened and closed from ${{ env._USER_BR }} to 'release' branch
+      # THEN assert PR closed with Merge from User Br to 'release' br
+      # AND PR to main Opened
+      # Assert PR Closed with Merge from ${{ env._USER_BR }} to 'release' branch, on ${{ env._GO_REPO_NAME }} github repo
+      # AND PR to main Opened
+      - name: Assert 'relase-me' git ops event 1st phase's state (PR to 'release' closed with merge, PR to 'main' opened) reached
         env:
           # pass in env vars required for test case
           GO_HEAD_BRANCH: ${{ env._USER_BR }}
           # if test code has auth issues pass in another token:
           # GITHUB_TOKEN: ${{ secrets.SOME_AUTHORIZED_GH_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.READ_PR_GITOPS_AUTOMATION }}
-        run: tox -vv -e test -- -vvs -k pr_to_release_opened_n_closed --run-gitops
+        run: tox -vv -e test -- -n auto -vvs -k 'test_pr_to_release_opened_n_closed or test_pr_to_main_opened' --run-gitops
 
 
       # [OPT] assert the expected labels has been put to PR -> 'release'
