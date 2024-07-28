@@ -1,0 +1,137 @@
+name: "Verify open PR to main when board-n-release Git Ops event"
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - "test"
+    tags:
+      - "all"
+      - "go-board-n-release"
+      - "go-board-n-release-g"
+
+
+# TEST CASE
+# GIVEN a Repo with 'main' and 'release' branches
+# GIVEN a "User" Branch (ie, feat, fix, both, etc) with changes to be released
+#  - GIVEN it will not cause any merge conficts
+#   - For now we require that "User Br" is a direct descendant of 'main', to guarantee no conflicts
+# Assuming any Github Protection 'release' Rules will be Green
+
+# WHEN a 'board-n-release' event is fired from client repo
+
+# THEN assert PR has opened and closed from User Br to 'release' br
+
+# [OPT] assert the expected labels has been put to PR -> 'release'
+
+# THEN Assert PR opened against 'main' branch
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    env:
+      # GIVEN / Internal Environment Variables for DRY
+      _USER_BR: "user-branch-${{ github.run_id }}"
+      _GO_OWNER: 'boromir674'
+      _GO_REPO_NAME: 'gitops-automation'
+      _GO_REPO: 'boromir674/gitops-automation'
+      _GO_DIR: "go-repo"
+    steps:
+
+      # GIVEN a Client Repo with 'main' and 'release' branches
+      - name: Checkout '${{ env._GO_REPO }}' Git Ops Compatible Repository
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env._GO_REPO }}
+          ref: "main"
+          path: ${{ env._GO_DIR }}
+          # use token with PAT value with push permission to avoid using 3rd-party action below
+
+      # GIVEN a Client "User" Branch (ie, feat, fix, both, etc) with changes to be released
+      # - run: git config --global user.name "Konstantinos Lampridis"
+      # - run: git config --global user.email "boromir674@hotmail.com"
+
+      - name: Make dummy changes
+        working-directory: ${{ env._GO_DIR }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.CICD_TEST_GH_TOKEN }}
+        run: |
+          git config --local user.name "Konstantinos Lampridis"
+          git config --local user.email "boromir674@hotmail.com"
+
+          git checkout -b ${_USER_BR}
+          echo "User Branch" > "${_USER_BR}.txt"
+
+      - name: Push and Create User Branch on '${{ env._GO_REPO }}' repo
+        # Pin to v1.7.2 -> 07c4d7b3def0a8ebe788a8f2c843a4e1de4f6900
+        uses: cpina/github-action-push-to-another-repository@07c4d7b3def0a8ebe788a8f2c843a4e1de4f6900
+        env:
+          SSH_DEPLOY_KEY: ${{ secrets.SSH_DEPLOY_KEY }}
+        with:
+          source-directory: '${{ env._GO_DIR }}'
+          destination-github-username: ${{ env._GO_OWNER }}
+          destination-repository-name: ${{ env._GO_REPO_NAME }}
+          # git config --global user.name "Konstantinos Lampridis"
+          user-email: boromir674@hotmail.com
+          # git config --global user.email "boromir674@hotmail.com"
+          user-name: 'Konstantinos Lampridis'
+          destination-repository-username: ${{ env._GO_OWNER }}
+          target-branch: ${{ env._USER_BR }}
+          commit-message: "auto-commit: write (literally) the User's Branch name '${_USER_BR}' to a file"
+          create-target-branch-if-needed: true
+
+      # GIVEN it will not cause any merge conficts
+      # For now the User Br is create above and it clearly is a direct descendant of 'main'
+      # so it is guaranteed NO conflicts will occur
+      
+      # if need be we can merge 'main' first into 'user-branch' to guarantee no conflicts
+      # - name: Merge User Branch to 'main'
+      #   run: |
+      #     git checkout main
+      #     git merge ${_USER_BR}
+      #     git push origin main
+
+      # WHEN a 'board-n-release' event is fired from client repo
+      - name: Fire 'board-n-release' git tag event, scoped on '${{ env._GO_REPO }}' repo
+        env:
+          TAG: "board-n-release"
+        working-directory: ${{ env._GO_DIR }}
+        run: |
+          # if tag exists on remote delete it
+          git push --delete origin ${TAG} || echo "No tag to delete"
+
+          # if tag exists on local checkout, delete it
+          git tag -d ${TAG} || echo "No tag to delete"
+
+          git tag ${TAG}
+          git push origin ${TAG}
+
+      # Since the assertions require waiting for "things" to happen on remotes we employ pytest
+      - uses: actions/setup-python@v4
+        with:
+          python-version: 3.11
+      - name: 'Install Tooling: tox v3.28'
+        run: pip install tox==3.28
+
+      - uses: actions/checkout@v4
+        name: 'Checkout our Test Suite'
+
+      # create deterministic and reproducible environment for pytest
+      - name: 'Use Pinned/Locked python dependencies that satisfy version constraints'
+        run: tox -vv -e pin-deps
+      - name: 'Build deterministic python virtual environment'
+        run: tox -vv -e test --notest
+
+      # THEN assert PR has opened and closed from User Br to 'release' br
+      - name: Assert PR opened and closed from ${{ env._USER_BR }} to 'release' branch
+        env:
+          # pass in env vars required for test case
+          GO_HEAD_BRANCH: ${{ env._USER_BR }}
+          # if test code has auth issues pass in another token:
+          # GITHUB_TOKEN: ${{ secrets.SOME_AUTHORIZED_GH_TOKEN }}
+        run: tox -vv -e test -- -vvs -k pr_to_release_opened_n_closed
+
+
+      # [OPT] assert the expected labels has been put to PR -> 'release'
+
+      # THEN Assert PR opened against 'main' branch
