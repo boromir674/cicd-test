@@ -45,40 +45,49 @@ jobs:
           repository: ${{ env._GO_REPO }}
           ref: "main"
           path: ${{ env._GO_DIR }}
+          token: ${{ secrets.PUSH_TO_GITOPS_AUTOMATION }}
           # use token with PAT value with push permission to avoid using 3rd-party action below
 
       # GIVEN a Client "User" Branch (ie, feat, fix, both, etc) with changes to be released
       # - run: git config --global user.name "Konstantinos Lampridis"
       # - run: git config --global user.email "boromir674@hotmail.com"
 
-      - name: Make dummy changes
+      - name: Make dummy changes on local User Branch '${_USER_BR}'
         working-directory: ${{ env._GO_DIR }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.CICD_TEST_GH_TOKEN }}
+        # env:
+        #   GITHUB_TOKEN: ${{ secrets.CICD_TEST_GH_TOKEN }}
         run: |
           git config --local user.name "Konstantinos Lampridis"
           git config --local user.email "boromir674@hotmail.com"
 
           git checkout -b ${_USER_BR}
           echo "User Branch" > "${_USER_BR}.txt"
+          git add "${_USER_BR}.txt"
 
-      - name: Push and Create User Branch on '${{ env._GO_REPO }}' repo
-        # Pin to v1.7.2 -> 07c4d7b3def0a8ebe788a8f2c843a4e1de4f6900
-        uses: cpina/github-action-push-to-another-repository@07c4d7b3def0a8ebe788a8f2c843a4e1de4f6900
-        env:
-          SSH_DEPLOY_KEY: ${{ secrets.SSH_DEPLOY_KEY }}
-        with:
-          source-directory: '${{ env._GO_DIR }}'
-          destination-github-username: ${{ env._GO_OWNER }}
-          destination-repository-name: ${{ env._GO_REPO_NAME }}
-          # git config --global user.name "Konstantinos Lampridis"
-          user-email: boromir674@hotmail.com
-          # git config --global user.email "boromir674@hotmail.com"
-          user-name: 'Konstantinos Lampridis'
-          destination-repository-username: ${{ env._GO_OWNER }}
-          target-branch: ${{ env._USER_BR }}
-          commit-message: "auto-commit: write (literally) the User's Branch name '${_USER_BR}' to a file"
-          create-target-branch-if-needed: true
+          git commit -m "auto-commit: write (literally) the User's Branch name '${_USER_BR}' to a file"
+
+      - name: Push User Branch on '${{ env._GO_REPO }}' repo
+        working-directory: ${{ env._GO_DIR }}
+        run: git push origin ${_USER_BR}
+
+
+      # - name: Push and Create User Branch on '${{ env._GO_REPO }}' repo
+      #   # Pin to v1.7.2 -> 07c4d7b3def0a8ebe788a8f2c843a4e1de4f6900
+      #   uses: cpina/github-action-push-to-another-repository@07c4d7b3def0a8ebe788a8f2c843a4e1de4f6900
+      #   env:
+      #     SSH_DEPLOY_KEY: ${{ secrets.SSH_DEPLOY_KEY }}
+      #   with:
+      #     source-directory: '${{ env._GO_DIR }}'
+      #     destination-github-username: ${{ env._GO_OWNER }}
+      #     destination-repository-name: ${{ env._GO_REPO_NAME }}
+      #     # git config --global user.name "Konstantinos Lampridis"
+      #     user-email: boromir674@hotmail.com
+      #     # git config --global user.email "boromir674@hotmail.com"
+      #     user-name: 'Konstantinos Lampridis'
+      #     destination-repository-username: ${{ env._GO_OWNER }}
+      #     target-branch: ${{ env._USER_BR }}
+      #     commit-message: "auto-commit: write (literally) the User's Branch name '${_USER_BR}' to a file"
+      #     create-target-branch-if-needed: true
 
       # GIVEN it will not cause any merge conficts
       # For now the User Br is create above and it clearly is a direct descendant of 'main'
