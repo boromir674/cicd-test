@@ -26,7 +26,7 @@ def get_pr_status():
         # DEBUG Code
 
         response = requests.get(
-        "https://api.github.com/repos/{owner}/{repo}/pulls?base={base_branch}".format(
+        "https://api.github.com/repos/{owner}/{repo}/pulls?state=all&base={base_branch}".format(
             owner=pr_info["owner"],
             repo=pr_info["repo"],
             base_branch=pr_info["base_branch"],
@@ -46,7 +46,7 @@ def get_pr_status():
         # PROD Code
         # Find PR head --> base, assuming head name is Unique!
         response = requests.get(
-            "https://api.github.com/repos/{owner}/{repo}/pulls?head={head_branch}&base={base_branch}".format(
+            "https://api.github.com/repos/{owner}/{repo}/pulls?state=all&head={head_branch}&base={base_branch}".format(
                 owner=pr_info["owner"],
                 repo=pr_info["repo"],
                 head_branch=pr_info["head_branch"],
