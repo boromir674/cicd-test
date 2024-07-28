@@ -21,6 +21,29 @@ def get_pr_status():
         pr_info: PRInfo,
         github_token: str,
     ) -> requests.Response:
+
+
+        # DEBUG Code
+
+        response = requests.get(
+        "https://api.github.com/repos/{owner}/{repo}/pulls?base={base_branch}".format(
+            owner=pr_info["owner"],
+            repo=pr_info["repo"],
+            base_branch=pr_info["base_branch"],
+        ),
+        headers={
+            "Authorization": f"Bearer {github_token}",
+        },
+    )
+        # find PRs with given base branch
+        response.raise_for_status()
+
+        print(f"\n[DEBUG] PRs with base branch: {pr_info['base_branch']}")
+        from pprint import pprint
+        pprint(response.json())
+        print()
+
+        # PROD Code
         # Find PR head --> base, assuming head name is Unique!
         response = requests.get(
             "https://api.github.com/repos/{owner}/{repo}/pulls?head={head_branch}&base={base_branch}".format(
@@ -49,7 +72,6 @@ def verify_pr_opened_n_closed(
     def _verify_pr_opened_n_closed(head_branch: str, base_branch: str, github_token: str):
     # GIVEN a way to query for the PR status for the relevant github repository
         def pr_status():
-            import os
             return [x['state'] for x in get_pr_status(
                 pr_info={
                     "owner": "boromir674",
