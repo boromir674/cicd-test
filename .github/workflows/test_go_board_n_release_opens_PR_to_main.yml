@@ -139,7 +139,7 @@ jobs:
           # if test code has auth issues pass in another token:
           # GITHUB_TOKEN: ${{ secrets.SOME_AUTHORIZED_GH_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.READ_PR_GITOPS_AUTOMATION }}
-        run: tox -vv -e test -- -vvs -k pr_to_release_opened_n_closed
+        run: tox -vv -e test -- -vvs -k pr_to_release_opened_n_closed --run-gitops
 
 
       # [OPT] assert the expected labels has been put to PR -> 'release'

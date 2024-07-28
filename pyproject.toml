@@ -114,6 +114,7 @@ pytest = "^7.4.3"
 pytest-xdist = "^3.5.0"
 pyyaml = "^6.0.1"
 click = "^8.1.7"
+pytest-explicit = "^1.0.1"
 
 [tool.poetry.extras]
 docs = [
@@ -132,14 +133,18 @@ typing = [
 # TOOLS
 [tool.pytest.ini_options]
 minversion = "6.2"
+# hard-inject args, when invoking `pytest` CLI
 addopts = "--strict-markers"
+# for explict --run-gitops -> pip install pytest-explicit
 markers = [
     "slow: Marks a slow test",
-    "integration: Tests applicable to a newly Generated Project, running with tox",
-    "network_bound: Require internet connection",
+    "gitops: Require some Git Ops event prior",
 ]
 testpaths = [
     "tests",
+]
+explicit-only = [
+    "gitops",
 ]
 
 
