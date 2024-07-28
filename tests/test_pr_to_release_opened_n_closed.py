@@ -49,7 +49,10 @@ def get_pr_status():
             "https://api.github.com/repos/{owner}/{repo}/pulls?state=all&head={head_branch}&base={base_branch}".format(
                 owner=pr_info["owner"],
                 repo=pr_info["repo"],
-                head_branch=pr_info["head_branch"],
+                head_branch="{organization}:{branch}".format(
+                    organization=pr_info["owner"],
+                    branch=pr_info["head_branch"],
+                ),
                 base_branch=pr_info["base_branch"],
             ),
             headers={
