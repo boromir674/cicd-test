@@ -293,25 +293,20 @@ jobs:
             # prs=$(curl -s -H "Authorization: token ${token}" "https://api.github.com/repos/boromir674/gitops-automation/pulls?state=closed?base=main" | jq -r '.[] | select(.merged_at != null) | .merged, .merged_at, .head.sha')
 
             # PRs that are closed with Merge: JSON array (of objects)
-            prs=$(curl -s -H "Authorization: token ${token}" "https://api.github.com/repos/boromir674/gitops-automation/pulls?state=closed?base=main" | jq -r '[.[] | {merged: .merged, merged_at: .merged_at, head_sha: .head.sha}] | map(select(.merged_at != null))')
+            prs=$(curl -s -H "Authorization: token ${token}" "https://api.github.com/repos/boromir674/gitops-automation/pulls?state=closed?base=main" | jq -r '[.[] | {merged_at: .merged_at, head_sha: .head.sha}] | map(select(.merged_at != null))')
 
             # echo "[DEBUG] PRs: $prs"
 
             for pr in $(echo ${prs} | jq -r '.[] | @base64'); do
-              _jq() {
-                echo ${i} | base64 --decode | jq -r ${1}
-              }
-              merged_at=$(echo $(_jq '.merged_at'))
-              head_sha=$(echo $(_jq '.head_sha'))
+              merged_at=$(echo "${pr}" | base64 --decode | jq -r '.merged_at')
+              head_sha=$(echo "${pr}" | base64 --decode | jq -r '.head_sha')
 
+              echo
               echo "[DEBUG] Considering PR:"
-              echo ${pr} | jq -r '.'
+              echo "${pr}" | base64 --decode | jq -r '.'
 
               # extract merged_at date and convert to seconds, if not null
-
-              date="${merged_at}"
-
-              seconds=$(date -d "$date" +%s)
+              seconds=$(date -d "${merged_at}" +%s)
               echo "[DEBUG] Computed seconds: $seconds"
 
               # consider only if newer than PR_RELEASE_TIMESTAMP seconds
