@@ -150,6 +150,22 @@ def verify_pr_opened():
         # Closure
         def get_pr_data():
             response = requests.get(
+                "https://api.github.com/repos/{owner}/{repo}/pulls?state=open".format(
+                    owner="boromir674",
+                    repo="gitops-automation",
+                ),
+                headers={
+                    "Authorization": f"Bearer {github_token}",
+                },
+            )
+            response.raise_for_status()
+            open_prs = response.json()
+            print(f"\n --- SANITY CHECK: Found {len(open_prs)} Open PRs ---")
+            from pprint import pprint
+            pprint(open_prs)
+            print()
+
+            response = requests.get(
                 "https://api.github.com/repos/{owner}/{repo}/pulls?state=open&head={head_branch}&base={base_branch}".format(
                     owner="boromir674",
                     repo="gitops-automation",

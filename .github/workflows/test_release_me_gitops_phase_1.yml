@@ -155,7 +155,7 @@ jobs:
           # if test code has auth issues pass in another token:
           # GITHUB_TOKEN: ${{ secrets.SOME_AUTHORIZED_GH_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.READ_PR_GITOPS_AUTOMATION }}
-        run: tox -vv -e test -- -n auto -vvs -k 'test_pr_to_release_opened_n_closed or test_pr_to_main_opened' --run-gitops
+        run: tox -vvs -e test -- -n auto -vvs -k 'test_pr_to_release_opened_n_closed or test_pr_to_main_opened' --run-gitops
 
       #### TEST PHASE 2 ####
 
