@@ -290,18 +290,29 @@ jobs:
             # Get the list of open PRs to ${{ env.MAIN_BR }}
             # prs=$(curl -s -H "Authorization: token ${token}" "https://api.github.com/repos/${_GO_OWNER}/${_GO_REPO_NAME}/pulls?state=closed?base=${{ env.MAIN_BR }}" | jq -r '.[] | select(.merged_at != null)')
 
-            prs=$(curl -s -H "Authorization: token ${token}" "https://api.github.com/repos/boromir674/gitops-automation/pulls?state=closed?base=main" | jq -r '.[] | select(.merged_at != null) | .merged, .merged_at, .head.sha')
+            # prs=$(curl -s -H "Authorization: token ${token}" "https://api.github.com/repos/boromir674/gitops-automation/pulls?state=closed?base=main" | jq -r '.[] | select(.merged_at != null) | .merged, .merged_at, .head.sha')
+
+            # PRs JSON array (of objects)
+            prs=$(curl -s -H "Authorization: token ${token}" "https://api.github.com/repos/boromir674/gitops-automation/pulls?state=closed?base=main" | jq -r '[.[] | {merged: .merged, merged_at: .merged_at, head_sha: .head.sha}]')
 
             # echo "[DEBUG] PRs: $prs"
 
-            for pr in $prs; do
-              echo "[DEBUG] Considering PR: $pr"
+            for pr in $(echo ${prs} | jq -r '.[] | @base64'); do
+              _jq() {
+                echo ${i} | base64 --decode | jq -r ${1}
+              }
+              merged=$(echo $(_jq '.merged'))
+              merged_at=$(echo $(_jq '.merged_at'))
+              head_sha=$(echo $(_jq '.head_sha'))
+
+              echo "[DEBUG] Considering PR:"
+              echo ${pr} | jq -r '.'
 
               # extract merged_at date and convert to seconds, if not null
-              if [ "$(echo $pr | jq -r '.merged_at')" == "null" ]; then
+              if [ "${merged_at}" == "null" ]; then
                 continue
               fi
-              date=$(echo $pr | jq -r '.merged_at')
+              date="${merged_at}"
 
               seconds=$(date -d "$date" +%s)
               echo "[DEBUG] Computed seconds: $seconds"
@@ -310,14 +321,14 @@ jobs:
               if [ $seconds -ge $PR_RELEASE_TIMESTAMP ]; then
                 # extract the commit SHA of the PR
 
-                pr_sha=$(echo $pr | jq -r '.head.sha')
+                pr_sha=$head_sha
                 echo "[DEBUG] Computed SHA: $pr_sha"
 
                 # consider only Release --> Main PRs
-                if [ "$pr_sha" = "$release_sha" ]; then
+                if [ "$pr_sha" == "$release_sha" ]; then
 
                   # consider only if closed with code merge and no "rejection"
-                  if [ $(echo $pr | jq -r '.merged') = true ]; then
+                  if [ "${merged}" == "true" ]; then
                     echo "[INFO] Asserted a PR to main closed, with code merge to Main"
                     break
                   fi
