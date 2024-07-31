@@ -1,16 +1,5 @@
 name: "Verify open PR to main when board-n-release Git Ops event"
 
-on:
-  workflow_dispatch:
-  push:
-    branches:
-      - "test"
-    tags:
-      - "all"
-      - "go-board-n-release"
-      - "go-board-n-release-g"
-
-
 # TEST CASE
 # GIVEN a Repo with 'main' and 'release' branches
 # GIVEN a "User" Branch (ie, feat, fix, both, etc) with changes to be released
@@ -31,6 +20,16 @@ on:
 # WHEN we trigger the 2nd `release-me` Phase of the Git Ops Process
 
 # THEN Assert that the PR to main closed with code merge
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - "test"
+    tags:
+      - "all"
+      - "go-board-n-release"
+      - "go-board-n-release-g"
 
 jobs:
   setup:
@@ -63,39 +62,10 @@ jobs:
           token: ${{ secrets.PUSH_TO_GITOPS_AUTOMATION }}
           # use token with PAT value with push permission to avoid using 3rd-party action below
 
-      # Put release onto main to avoid potential conflicts
-      # - name: Put Release Branch on 'main' to avoid potential conflicts
-      #   working-directory: ${{ env._GO_DIR }}
-      #   env:
-      #     release: ${{ env.RELEASE_BR }}
-      #   run: |
-      #     git fetch
-      #     git branch --track $release "origin/${release}" || echo "Found local Branch '${release}'"
-      #     git branch -a
-      #     git log --oneline --decorate --graph --all
-
-      # - working-directory: ${{ env._GO_DIR }}
-      #   run: |
-      #     git checkout "${{ env.RELEASE_BR }}"
-      #     git pull origin "${{ env.RELEASE_BR }}"
-
-      #     git log --oneline --decorate --graph --all
-      #     git merge main --no-edit
-      #     git log --oneline --decorate --graph --all
-
-      #     git push
-      #     git log --oneline --decorate --graph --all
-
-      # GIVEN a Client "User" Branch (ie, feat, fix, both, etc) with changes to be released
-      # - run: git config --global user.name "Konstantinos Lampridis"
-      # - run: git config --global user.email "boromir674@hotmail.com"
-
       - name: Make dummy changes on local User Branch '${_USER_BR}'
         working-directory: ${{ env._GO_DIR }}
         env:
           TOPICAL_BRANCH_CHANGES_FILE: "changes-from-topical-branch.txt"
-        # env:
-        #   GITHUB_TOKEN: ${{ secrets.CICD_TEST_GH_TOKEN }}
         run: |
           git config --local user.name "Konstantinos Lampridis"
           git config --local user.email "boromir674@hotmail.com"
@@ -109,8 +79,6 @@ jobs:
       - name: Push User Branch on '${{ env._GO_REPO }}' repo
         working-directory: ${{ env._GO_DIR }}
         run: git push origin ${_USER_BR}
-
-
 
       # WHEN a 'board-n-release' event is fired from client repo
       - name: Fire 'board-n-release' git tag event, scoped on '${{ env._GO_REPO }}' repo
@@ -147,13 +115,11 @@ jobs:
       # AND PR to main Opened
       # Assert PR Closed with Merge from ${{ env._USER_BR }} to 'release' branch, on ${{ env._GO_REPO_NAME }} github repo
       # AND PR to main Opened
-      - name: Assert 'release-me' git ops event 1st phase's state (PR to 'release' closed with merge, PR to 'main' opened) reached
+      - name: Assert 'release-me' Git Ops event 1st phase's state (PR to 'release' closed with merge, PR to 'main' opened) reached
         env:
           # pass in env vars required for test case
           GO_INCOMING_BRANCH: ${{ env._USER_BR }}
           GO_RELEASE_BRANCH: ${{ env.RELEASE_BR }}
-          # if test code has auth issues pass in another token:
-          # GITHUB_TOKEN: ${{ secrets.SOME_AUTHORIZED_GH_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.READ_PR_GITOPS_AUTOMATION }}
         run: tox -vvs -e test -- -n auto -vvs -k 'test_pr_to_release_opened_n_closed or test_pr_to_main_opened' --run-gitops
 
@@ -161,7 +127,6 @@ jobs:
 
       # [OPT] assert the expected labels has been put to PR -> 'release'
 
-      - run: ls -la
       - name: Checkout '${{ env._GO_REPO }}' Git Ops Compatible Repository
         uses: actions/checkout@v4
         with:
@@ -215,9 +180,6 @@ jobs:
       # THEN Assert that an RC tag was pushed on Release Branch
       - name: Assert that the RC tag '${{ env.EXPECTED_RC_TAG }}' was pushed on '${{ env.RELEASE_BR }}' Branch
         env:
-          # if test code has auth issues pass in another token:
-          # GITHUB_TOKEN: ${{ secrets.READ_PR_GITOPS_AUTOMATION }}
-          # try the github provided token
           token: ${{ secrets.GITHUB_TOKEN }}
         run: |
           start_time=$(date +%s)
@@ -251,33 +213,21 @@ jobs:
             sleep 3.5
           done
 
-      # later we can assert whether the tag was a DEV Release or a PROD Release
+      # in the future we can assert whether the tag was a DEV Release or a PROD Release
       
 
       # THEN Assert that exatly one PR to main closed, with code merge, after PR_RELEASE_TIMESTAMP
       - name: Assert that the PR to main closed with code merge
         env:
-          GO_INCOMING_BRANCH: ${{ env._USER_BR }}
-          MAIN_BR: 'main'
-          # if test code has auth issues pass in another token:
-          # GITHUB_TOKEN: ${{ secrets.READ_PR_GITOPS_AUTOMATION }}
-          # try the github provided token
           token: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          repo="${_GO_REPO}"
-          branch="main"
-
-          # Get the commit SHA of the head of the ${{ env.MAIN_BR }} branch
-          branch_sha=$(curl -s -H "Authorization: token ${token}" \
-            "https://api.github.com/repos/${_GO_OWNER}/${_GO_REPO_NAME}/git/refs/heads/${{ env.MAIN_BR }}" | jq -r '.object.sha')
-
           # Get the commit SHA of Release Branch
           release_sha=$(curl -s -H "Authorization: token ${token}" \
-            "https://api.github.com/repos/${_GO_OWNER}/${_GO_REPO_NAME}/git/refs/heads/${{ env.RELEASE_BR }}" | jq -r '.object.sha')
+            "https://api.github.com/repos/${{ env._GO_REPO }}/git/refs/heads/${{ env.RELEASE_BR }}" | jq -r '.object.sha')
 
-          echo "[INFO] Commit Sha of Main Br: $branch_sha"
+          echo "[INFO] Commit Sha of Release Br: $release_sha"
 
-          sleep 15
+          sleep 12
           start_time=$(date +%s)
 
           done=false
@@ -285,16 +235,9 @@ jobs:
 
             # Get the list of PRs in the repository
             # invariant of ?head=boromir:release, since we accept only later than PR_RELEASE_TIMESTAMP
-            # take care that merged_at returns dates as 2024-07-31T13:03:13Z
-            # which needs to be comparable to our PR_RELEASE_TIMESTAMP which is in seconds
-
-            # Get the list of open PRs to ${{ env.MAIN_BR }}
-            # prs=$(curl -s -H "Authorization: token ${token}" "https://api.github.com/repos/${_GO_OWNER}/${_GO_REPO_NAME}/pulls?state=closed?base=${{ env.MAIN_BR }}" | jq -r '.[] | select(.merged_at != null)')
-
-            # prs=$(curl -s -H "Authorization: token ${token}" "https://api.github.com/repos/boromir674/gitops-automation/pulls?state=closed?base=main" | jq -r '.[] | select(.merged_at != null) | .merged, .merged_at, .head.sha')
 
             # PRs that are closed with Merge: JSON array (of objects)
-            prs=$(curl -s -H "Authorization: token ${token}" "https://api.github.com/repos/boromir674/gitops-automation/pulls?state=closed?base=main" | jq -r '[.[] | {merged_at: .merged_at, head_sha: .head.sha}] | map(select(.merged_at != null))')
+            prs=$(curl -s -H "Authorization: token ${token}" "https://api.github.com/repos/${{ env._GO_REPO }}/pulls?state=closed?base=main" | jq -r '[.[] | {merged_at: .merged_at, head_sha: .head.sha}] | map(select(.merged_at != null))')
 
             # echo "[DEBUG] PRs: $prs"
 
@@ -343,5 +286,7 @@ jobs:
 
           done
 
-      # later we can assert that Main Br got PROD tag (v1.0.0, v1.2.0-dev, etc)
-      # and that Github Release was also made from that tag
+      # in the future we may assert that Main Br got PROD tag (v1.0.0, v1.2.0-dev, etc)
+      # given the auto-prod-1.0.0 event tag
+
+      # and that a Github Release was also made from that tag (which is now on main branch)
