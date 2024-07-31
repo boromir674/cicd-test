@@ -288,7 +288,11 @@ jobs:
             # which needs to be comparable to our PR_RELEASE_TIMESTAMP which is in seconds
 
             # Get the list of open PRs to ${{ env.MAIN_BR }}
-            prs=$(curl -s -H "Authorization: token ${token}" "https://api.github.com/repos/${_GO_OWNER}/${_GO_REPO_NAME}/pulls?state=closed?base=${{ env.MAIN_BR }}" | jq -r '.[] | select(.merged_at != null)')
+            # prs=$(curl -s -H "Authorization: token ${token}" "https://api.github.com/repos/${_GO_OWNER}/${_GO_REPO_NAME}/pulls?state=closed?base=${{ env.MAIN_BR }}" | jq -r '.[] | select(.merged_at != null)')
+
+            prs=$(curl -s -H "Authorization: token ${GITOPS_AUTOMATION_PR_READ}" "https://api.github.com/repos/boromir674/gitops-automation/pulls?state=closed?base=main" | jq -r '.[] | select(.merged_at != null) | .merged, .merged_at, .head.sha')
+
+            echo "[DEBUG] PRs: $prs"
 
             for pr in $prs; do
               # extract merged_at date and convert to seconds
