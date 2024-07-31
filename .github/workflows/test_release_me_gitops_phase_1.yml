@@ -292,19 +292,27 @@ jobs:
 
             prs=$(curl -s -H "Authorization: token ${token}" "https://api.github.com/repos/boromir674/gitops-automation/pulls?state=closed?base=main" | jq -r '.[] | select(.merged_at != null) | .merged, .merged_at, .head.sha')
 
-            echo "[DEBUG] PRs: $prs"
+            # echo "[DEBUG] PRs: $prs"
 
             for pr in $prs; do
+              echo "[DEBUG] Considering PR: $pr"
+
               # extract merged_at date and convert to seconds, if not null
               if [ "$(echo $pr | jq -r '.merged_at')" == "null" ]; then
                 continue
               fi
               date=$(echo $pr | jq -r '.merged_at')
+
               seconds=$(date -d "$date" +%s)
+              echo "[DEBUG] Computed seconds: $seconds"
+
               # consider only if newer than PR_RELEASE_TIMESTAMP seconds
               if [ $seconds -ge $PR_RELEASE_TIMESTAMP ]; then
                 # extract the commit SHA of the PR
+
                 pr_sha=$(echo $pr | jq -r '.head.sha')
+                echo "[DEBUG] Computed SHA: $pr_sha"
+
                 # consider only Release --> Main PRs
                 if [ "$pr_sha" = "$release_sha" ]; then
 
