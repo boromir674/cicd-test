@@ -77,13 +77,13 @@ jobs:
           git checkout "${release}"
           git pull origin "${release}"
 
-          git log --one-line --decorate --graph --all
+          git log --oneline --decorate --graph --all
 
           git merge main --no-edit
-          git log --one-line --decorate --graph --all
+          git log --oneline --decorate --graph --all
 
           git push
-          git log --one-line --decorate --graph --all
+          git log --oneline --decorate --graph --all
 
       # GIVEN a Client "User" Branch (ie, feat, fix, both, etc) with changes to be released
       # - run: git config --global user.name "Konstantinos Lampridis"
