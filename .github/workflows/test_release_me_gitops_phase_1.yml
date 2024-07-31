@@ -293,7 +293,7 @@ jobs:
             # prs=$(curl -s -H "Authorization: token ${token}" "https://api.github.com/repos/boromir674/gitops-automation/pulls?state=closed?base=main" | jq -r '.[] | select(.merged_at != null) | .merged, .merged_at, .head.sha')
 
             # PRs that are closed with Merge: JSON array (of objects)
-            prs=$(curl -s -H "Authorization: token ${token}" "https://api.github.com/repos/boromir674/gitops-automation/pulls?state=closed?base=main" | jq -r '[.[] | {merged_at: .merged_at, head_sha: .head.sha} | map(select(.merged_at != null))]')
+            prs=$(curl -s -H "Authorization: token ${token}" "https://api.github.com/repos/boromir674/gitops-automation/pulls?state=closed?base=main" | jq -r '[.[] | {merged: .merged, merged_at: .merged_at, head_sha: .head.sha}] | map(select(.merged_at != null))')
 
             # echo "[DEBUG] PRs: $prs"
 
