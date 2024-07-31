@@ -72,7 +72,7 @@ jobs:
           git fetch
           git branch --track $release "origin/${release}" || echo "Found local Branch '${release}'"
           git branch -a
-          git log --one-line --decorate --graph --all
+          git log --oneline --decorate --graph --all
 
       - run: git checkout "${release}"
       - run: git pull origin "${release}"
