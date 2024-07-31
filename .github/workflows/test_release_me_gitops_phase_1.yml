@@ -292,8 +292,8 @@ jobs:
 
             # prs=$(curl -s -H "Authorization: token ${token}" "https://api.github.com/repos/boromir674/gitops-automation/pulls?state=closed?base=main" | jq -r '.[] | select(.merged_at != null) | .merged, .merged_at, .head.sha')
 
-            # PRs JSON array (of objects)
-            prs=$(curl -s -H "Authorization: token ${token}" "https://api.github.com/repos/boromir674/gitops-automation/pulls?state=closed?base=main" | jq -r '[.[] | {merged: .merged, merged_at: .merged_at, head_sha: .head.sha}]')
+            # PRs that are closed with Merge: JSON array (of objects)
+            prs=$(curl -s -H "Authorization: token ${token}" "https://api.github.com/repos/boromir674/gitops-automation/pulls?state=closed?base=main" | jq -r '[.[] | {merged_at: .merged_at, head_sha: .head.sha} | map(select(.merged_at != null))]')
 
             # echo "[DEBUG] PRs: $prs"
 
@@ -301,7 +301,6 @@ jobs:
               _jq() {
                 echo ${i} | base64 --decode | jq -r ${1}
               }
-              merged=$(echo $(_jq '.merged'))
               merged_at=$(echo $(_jq '.merged_at'))
               head_sha=$(echo $(_jq '.head_sha'))
 
@@ -309,9 +308,7 @@ jobs:
               echo ${pr} | jq -r '.'
 
               # extract merged_at date and convert to seconds, if not null
-              if [ "${merged_at}" == "null" ]; then
-                continue
-              fi
+
               date="${merged_at}"
 
               seconds=$(date -d "$date" +%s)
@@ -325,13 +322,10 @@ jobs:
                 echo "[DEBUG] Computed SHA: $pr_sha"
 
                 # consider only Release --> Main PRs
+                # closed with code merge is already guaranteed here
                 if [ "$pr_sha" == "$release_sha" ]; then
-
-                  # consider only if closed with code merge and no "rejection"
-                  if [ "${merged}" == "true" ]; then
-                    echo "[INFO] Asserted a PR to main closed, with code merge to Main"
-                    break
-                  fi
+                  echo "[INFO] Asserted a PR to main closed, with code merge to Main"
+                  break
                 fi
               fi
             done
