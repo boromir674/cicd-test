@@ -63,6 +63,28 @@ jobs:
           token: ${{ secrets.PUSH_TO_GITOPS_AUTOMATION }}
           # use token with PAT value with push permission to avoid using 3rd-party action below
 
+      # Put release onto main to avoid potential conflicts
+      - name: Put Release Branch on 'main' to avoid potential conflicts
+        working-directory: ${{ env._GO_DIR }}
+        env:
+          release: ${{ env.RELEASE_BR }}
+        run: |
+          git fetch
+          git branch --track $release "origin/${release}" || echo "Found local Branch '${release}'"
+          git branch -a
+          git log --one-line --decorate --graph --all
+
+          git checkout "${release}"
+          git pull origin "${release}"
+
+          git log --one-line --decorate --graph --all
+
+          git merge main --no-edit
+          git log --one-line --decorate --graph --all
+
+          git push
+          git log --one-line --decorate --graph --all
+
       # GIVEN a Client "User" Branch (ie, feat, fix, both, etc) with changes to be released
       # - run: git config --global user.name "Konstantinos Lampridis"
       # - run: git config --global user.email "boromir674@hotmail.com"
@@ -87,19 +109,7 @@ jobs:
         working-directory: ${{ env._GO_DIR }}
         run: git push origin ${_USER_BR}
 
-      # Put release onto main to avoid potential conflicts
-      - name: Put Release Branch on 'main' to avoid potential conflicts
-        working-directory: ${{ env._GO_DIR }}
-        env:
-          release: ${{ env.RELEASE_BR }}
-        run: |
-          git fetch
-          git branch -a
-          git branch --track $release "origin/${release}" || echo "Found local Branch '${release}'"
-          git checkout "${release}"
-          git pull origin "${release}"
-          git merge main --no-edit
-          git push
+
 
       # WHEN a 'board-n-release' event is fired from client repo
       - name: Fire 'board-n-release' git tag event, scoped on '${{ env._GO_REPO }}' repo
