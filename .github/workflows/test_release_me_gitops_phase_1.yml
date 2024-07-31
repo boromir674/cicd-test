@@ -290,3 +290,18 @@ jobs:
       # given the auto-prod-1.0.0 event tag
 
       # and that a Github Release was also made from that tag (which is now on main branch)
+
+
+      - name: Put release branch to same commit as main to avoid future conflicts
+        if: always()
+        working-directory: ${{ env._GO_DIR }}
+        env:
+          release: ${{ env.RELEASE_BR }}
+        run: |
+          git fetch
+          git checkout main
+          git pull origin main
+          git checkout release
+          git pull origin release
+          git rebase main
+          git push origin release
