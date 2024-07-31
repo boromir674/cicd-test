@@ -296,7 +296,7 @@ jobs:
 
             for pr in $prs; do
               # extract merged_at date and convert to seconds, if not null
-              if [ $(echo $pr | jq -r '.merged_at') = null ]; then
+              if [ "$(echo $pr | jq -r '.merged_at')" == "null" ]; then
                 continue
               fi
               date=$(echo $pr | jq -r '.merged_at')
