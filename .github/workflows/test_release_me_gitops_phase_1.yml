@@ -87,6 +87,19 @@ jobs:
         working-directory: ${{ env._GO_DIR }}
         run: git push origin ${_USER_BR}
 
+      # Put release onto main to avoid potential conflicts
+      - name: Put Release Branch on 'main' to avoid potential conflicts
+        working-directory: ${{ env._GO_DIR }}
+        env:
+          release: ${{ env.RELEASE_BR }}
+        run: |
+          git fetch
+          git branch --track $release "origin/${release}" || echo "Found local Branch '${release}'"
+          git checkout "${release}"
+          git pull origin "${release}"
+          git rebase main
+          git push
+
       # WHEN a 'board-n-release' event is fired from client repo
       - name: Fire 'board-n-release' git tag event, scoped on '${{ env._GO_REPO }}' repo
         env:
