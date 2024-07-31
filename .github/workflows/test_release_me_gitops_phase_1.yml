@@ -94,10 +94,11 @@ jobs:
           release: ${{ env.RELEASE_BR }}
         run: |
           git fetch
+          git branch -a
           git branch --track $release "origin/${release}" || echo "Found local Branch '${release}'"
           git checkout "${release}"
           git pull origin "${release}"
-          git rebase main
+          git merge main --no-edit
           git push
 
       # WHEN a 'board-n-release' event is fired from client repo
