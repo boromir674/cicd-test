@@ -280,7 +280,8 @@ jobs:
           sleep 15
           start_time=$(date +%s)
 
-          while true; do
+          done=false
+          while [ $done == false ]; do
 
             # Get the list of PRs in the repository
             # invariant of ?head=boromir:release, since we accept only later than PR_RELEASE_TIMESTAMP
@@ -320,6 +321,7 @@ jobs:
                 # closed with code merge is already guaranteed here
                 if [ "$pr_sha" == "$release_sha" ]; then
                   echo "[INFO] Asserted a PR to main closed, with code merge to Main"
+                  done=true
                   break
                 fi
               fi
@@ -330,7 +332,7 @@ jobs:
             elapsed_time=$(($current_time - $start_time))
 
             # Exit with Error if max Elapsed time is reached
-            if [ $elapsed_time -ge 30 ]; then
+            if [[ "$done" == "false" && "$elapsed_time" -ge 30 ]]; then
               echo "[Assertion Error] PR to main did not close with code merge"
               echo "Exiting with error..."
               exit 1
