@@ -295,7 +295,10 @@ jobs:
             echo "[DEBUG] PRs: $prs"
 
             for pr in $prs; do
-              # extract merged_at date and convert to seconds
+              # extract merged_at date and convert to seconds, if not null
+              if [ $(echo $pr | jq -r '.merged_at') = null ]; then
+                continue
+              fi
               date=$(echo $pr | jq -r '.merged_at')
               seconds=$(date -d "$date" +%s)
               # consider only if newer than PR_RELEASE_TIMESTAMP seconds
