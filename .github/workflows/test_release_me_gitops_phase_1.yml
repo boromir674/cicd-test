@@ -258,7 +258,7 @@ jobs:
       - name: Assert that the PR to main closed with code merge
         env:
           GO_INCOMING_BRANCH: ${{ env._USER_BR }}
-          GO_MAIN_BRANCH: 'main'
+          MAIN_BR: 'main'
           # if test code has auth issues pass in another token:
           # GITHUB_TOKEN: ${{ secrets.READ_PR_GITOPS_AUTOMATION }}
           # try the github provided token
@@ -267,44 +267,52 @@ jobs:
           repo="${_GO_REPO}"
           branch="main"
 
-          # Get the commit SHA of the head of the main branch
+          # Get the commit SHA of the head of the ${{ env.MAIN_BR }} branch
           branch_sha=$(curl -s -H "Authorization: token ${token}" \
-            "https://api.github.com/repos/${_GO_OWNER}/${_GO_REPO_NAME}/git/refs/heads/$branch" | jq -r '.object.sha')
+            "https://api.github.com/repos/${_GO_OWNER}/${_GO_REPO_NAME}/git/refs/heads/${{ env.MAIN_BR }}" | jq -r '.object.sha')
+
+          echo "[INFO] Commit Sha of Main Br: $branch_sha"
 
           sleep 20
           start_time=$(date +%s)
 
           while true; do
-            
-              # Get the list of PRs in the repository
-              # invariant of ?head=boromir:release, since we accept only later than PR_RELEASE_TIMESTAMP
-              prs=$(curl -s -H "Authorization: token ${token}" \
-                "https://api.github.com/repos/${_GO_OWNER}/${_GO_REPO_NAME}/pulls?state=closed?base=main" | jq -r '.[] | select(.merged_at != null) | select(.merged_at >= env.PR_RELEASE_TIMESTAMP) | .head.sha')
-  
-              # assert this list of hashes has length of 1
 
-              if [ $(echo "$prs" | wc -l) -eq 1 ]; then
-                pr_sha=$(echo "$prs" | head -n 1)
-                if [ "$branch_sha" = "$pr_sha" ]; then
-                  echo "[INFO] Asserted PR to main closed with code merge"
-                  break
-                fi
-              # Compare the commit SHA of the PR and the main branch
-
-              else
-                current_time=$(date +%s)
-                elapsed_time=$(($current_time - $start_time))
+            # Get the list of PRs in the repository
+            # invariant of ?head=boromir:release, since we accept only later than PR_RELEASE_TIMESTAMP
+            prs=$(curl -s -H "Authorization: token ${token}" \
+              "https://api.github.com/repos/${_GO_OWNER}/${_GO_REPO_NAME}/pulls?state=closed?base=${{ env.MAIN_BR }}" | jq -r '.[] | select(.merged_at != null) | select(.merged_at >= env.PR_RELEASE_TIMESTAMP) | .head.sha')
   
-                if [ $elapsed_time -ge 25 ]; then
-                  echo "[Assertion Error] PR to main did not close with code merge"
-                  echo "Exiting with error..."
-                  exit 1
-                fi
+            echo "[INFO] PRs to Main Head Commit SHA's: $prs"
+
+            # assert this list of hashes has length of 1
+
+            if [ $(echo "$prs" | wc -l) -eq 1 ]; then
+              pr_sha=$(echo "$prs" | head -n 1)
+
+              echo "[DEBUG] PR to Main Head Commit SHA: $pr_sha"
+
+              if [ "$branch_sha" = "$pr_sha" ]; then
+                echo "[INFO] Asserted PR to main closed with code merge"
+                break
               fi
-  
-              # Sleep for 5 seconds
-              sleep 5
-            done
+            # Compare the commit SHA of the PR and the main branch
+
+            else
+              current_time=$(date +%s)
+              elapsed_time=$(($current_time - $start_time))
+
+              if [ $elapsed_time -ge 25 ]; then
+                echo "[Assertion Error] PR to main did not close with code merge"
+                echo "Exiting with error..."
+                exit 1
+              fi
+            fi
+
+            # Sleep for 5 seconds
+            sleep 5
+
+          done
 
       # later we can assert that Main Br got PROD tag (v1.0.0, v1.2.0-dev, etc)
       # and that Github Release was also made from that tag
