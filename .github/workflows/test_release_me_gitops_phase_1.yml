@@ -281,7 +281,7 @@ jobs:
             # Get the list of PRs in the repository
             # invariant of ?head=boromir:release, since we accept only later than PR_RELEASE_TIMESTAMP
             prs=$(curl -s -H "Authorization: token ${token}" \
-              "https://api.github.com/repos/${_GO_OWNER}/${_GO_REPO_NAME}/pulls?state=closed?base=${{ env.MAIN_BR }}" | jq -r '.[] | select(.merged_at != null) | select(.merged_at >= env.PR_RELEASE_TIMESTAMP) | .head.sha')
+              "https://api.github.com/repos/${_GO_OWNER}/${_GO_REPO_NAME}/pulls?state=closed?base=${{ env.MAIN_BR }}" | jq -r '.[] | select(.merged_at != null) | select(.merged_at >= ${{ env.PR_RELEASE_TIMESTAMP }}) | .head.sha')
   
             echo "[INFO] PRs to Main Head Commit SHA's: $prs"
 
