@@ -74,8 +74,8 @@ jobs:
           git branch -a
           git log --oneline --decorate --graph --all
 
-      - run: git checkout "${release}"
-      - run: git pull origin "${release}"
+      - run: git checkout "${{ env.RELEASE_BR }}"
+      - run: git pull origin "${{ env.RELEASE_BR }}"
 
       - run: git log --oneline --decorate --graph --all
 
