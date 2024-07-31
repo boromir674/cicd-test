@@ -271,46 +271,59 @@ jobs:
           branch_sha=$(curl -s -H "Authorization: token ${token}" \
             "https://api.github.com/repos/${_GO_OWNER}/${_GO_REPO_NAME}/git/refs/heads/${{ env.MAIN_BR }}" | jq -r '.object.sha')
 
+          # Get the commit SHA of Release Branch
+          release_sha=$(curl -s -H "Authorization: token ${token}" \
+            "https://api.github.com/repos/${_GO_OWNER}/${_GO_REPO_NAME}/git/refs/heads/${{ env.RELEASE_BR }}" | jq -r '.object.sha')
+
           echo "[INFO] Commit Sha of Main Br: $branch_sha"
 
-          sleep 20
+          sleep 15
           start_time=$(date +%s)
 
           while true; do
 
             # Get the list of PRs in the repository
             # invariant of ?head=boromir:release, since we accept only later than PR_RELEASE_TIMESTAMP
+            # take care that merged_at returns dates as 2024-07-31T13:03:13Z
+            # which needs to be comparable to our PR_RELEASE_TIMESTAMP which is in seconds
+
+            # Get the list of open PRs to ${{ env.MAIN_BR }}
             prs=$(curl -s -H "Authorization: token ${token}" \
-              "https://api.github.com/repos/${_GO_OWNER}/${_GO_REPO_NAME}/pulls?state=closed?base=${{ env.MAIN_BR }}" | jq -r '.[] | select(.merged_at != null) | select(.merged_at >= ${{ env.PR_RELEASE_TIMESTAMP }}) | .head.sha')
-  
-            echo "[INFO] PRs to Main Head Commit SHA's: $prs"
+              "https://api.github.com/repos/${_GO_OWNER}/${_GO_REPO_NAME}/pulls?state=closed?base=${{ env.MAIN_BR }}" | jq -r '.[] | select(.merged_at != null)')
 
-            # assert this list of hashes has length of 1
+            for pr in $prs; do
+              # extract merged_at date and convert to seconds
+              date=$(echo $pr | jq -r '.merged_at')
+              seconds=$(date -d "$date" +%s)
+              # consider only if newer than PR_RELEASE_TIMESTAMP seconds
+              if [ $seconds -ge $PR_RELEASE_TIMESTAMP ]; then
+                # extract the commit SHA of the PR
+                pr_sha=$(echo $pr | jq -r '.head.sha')
+                # consider only Release --> Main PRs
+                if [ "$pr_sha" = "$release_sha" ]; then
 
-            if [ $(echo "$prs" | wc -l) -eq 1 ]; then
-              pr_sha=$(echo "$prs" | head -n 1)
-
-              echo "[DEBUG] PR to Main Head Commit SHA: $pr_sha"
-
-              if [ "$branch_sha" = "$pr_sha" ]; then
-                echo "[INFO] Asserted PR to main closed with code merge"
-                break
+                  # consider only if closed with code merge and no "rejection"
+                  if [ $(echo $pr | jq -r '.merged') = true ]; then
+                    echo "[INFO] Asserted a PR to main closed, with code merge to Main"
+                    break
+                  fi
+                fi
               fi
-            # Compare the commit SHA of the PR and the main branch
+            done
 
-            else
-              current_time=$(date +%s)
-              elapsed_time=$(($current_time - $start_time))
+            # Update the current Elapsed time
+            current_time=$(date +%s)
+            elapsed_time=$(($current_time - $start_time))
 
-              if [ $elapsed_time -ge 25 ]; then
-                echo "[Assertion Error] PR to main did not close with code merge"
-                echo "Exiting with error..."
-                exit 1
-              fi
+            # Exit with Error if max Elapsed time is reached
+            if [ $elapsed_time -ge 30 ]; then
+              echo "[Assertion Error] PR to main did not close with code merge"
+              echo "Exiting with error..."
+              exit 1
             fi
 
-            # Sleep for 5 seconds
-            sleep 5
+            # Sleep for 8 seconds
+            sleep 8
 
           done
 
