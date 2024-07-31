@@ -266,11 +266,13 @@ jobs:
         run: |
           repo="${_GO_REPO}"
           branch="main"
-          start_time=$(date +%s)
 
           # Get the commit SHA of the head of the main branch
           branch_sha=$(curl -s -H "Authorization: token ${token}" \
             "https://api.github.com/repos/${_GO_OWNER}/${_GO_REPO_NAME}/git/refs/heads/$branch" | jq -r '.object.sha')
+
+          sleep 20
+          start_time=$(date +%s)
 
           while true; do
             
@@ -300,8 +302,8 @@ jobs:
                 fi
               fi
   
-              # Sleep for 3.5 seconds
-              sleep 3.5
+              # Sleep for 5 seconds
+              sleep 5
             done
 
       # later we can assert that Main Br got PROD tag (v1.0.0, v1.2.0-dev, etc)
