@@ -74,11 +74,12 @@ jobs:
           git branch -a
           git log --one-line --decorate --graph --all
 
-          git checkout "${release}"
-          git pull origin "${release}"
+      - run: git checkout "${release}"
+      - run: git pull origin "${release}"
 
-          git log --oneline --decorate --graph --all
+      - run: git log --oneline --decorate --graph --all
 
+      - run: |
           git merge main --no-edit
           git log --oneline --decorate --graph --all
 
