@@ -134,7 +134,9 @@ jobs:
           repository: ${{ env._GO_REPO }}
           ref: "main"
           path: ${{ env._GO_DIR }}
+          set-safe-directory: ''  # `git config --global --add safe.directory <path>`
           token: ${{ secrets.PUSH_TO_GITOPS_AUTOMATION }}
+
       # AND GIVEN we emulate some plausible git steps, like Changelog.md update and Sem Ver bump
       - name: Sync release branch
         working-directory: ${{ env._GO_DIR }}
@@ -158,6 +160,8 @@ jobs:
           cat CHANGELOG.md
 
           git add CHANGELOG.md
+          git config user.name "Konstantinos Lampridis"
+          git config user.email "boromir674@hotmail.com"
           git commit -m "auto-commit: update CHANGELOG.md with dummy Release entry"
           git push origin release
 
