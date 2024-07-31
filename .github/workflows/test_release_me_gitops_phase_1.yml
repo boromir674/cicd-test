@@ -123,9 +123,18 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.READ_PR_GITOPS_AUTOMATION }}
         run: tox -vv -e test -- -n auto -vvs -k 'test_pr_to_release_opened_n_closed or test_pr_to_main_opened' --run-gitops
 
+      ### TEST PHASE 2 ###
 
       # [OPT] assert the expected labels has been put to PR -> 'release'
 
+      - run: ls -la
+      - name: Checkout '${{ env._GO_REPO }}' Git Ops Compatible Repository
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env._GO_REPO }}
+          ref: "main"
+          path: ${{ env._GO_DIR }}
+          token: ${{ secrets.PUSH_TO_GITOPS_AUTOMATION }}
       # AND GIVEN we emulate some plausible git steps, like Changelog.md update and Sem Ver bump
       - name: Sync release branch
         working-directory: ${{ env._GO_DIR }}
@@ -134,7 +143,7 @@ jobs:
           git branch --track release origin/release || echo "Found local Branch 'release'"
           git checkout release
           git pull origin release
-      
+
       # Sem Ver Bump in sources is not relevant for the gitops-automation project
 
       # Emulate Changelog.md update
