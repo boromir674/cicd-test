@@ -162,6 +162,7 @@ def verify_pr_opened():
             open_prs = response.json()
             print(f"\n --- SANITY CHECK: Found {len(open_prs)} Open PRs ---")
             from pprint import pprint
+
             pprint(open_prs)
             print()
 
