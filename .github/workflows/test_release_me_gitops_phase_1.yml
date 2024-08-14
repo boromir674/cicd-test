@@ -62,6 +62,10 @@ jobs:
           token: ${{ secrets.PUSH_TO_GITOPS_AUTOMATION }}
           # use token with PAT value with push permission to avoid using 3rd-party action below
 
+      # DEBUG
+      - run: git log --all --oneline --decorate --graph
+        working-directory: ${{ env._GO_DIR }}
+
       - name: Make dummy changes on local User Branch '${_USER_BR}'
         working-directory: ${{ env._GO_DIR }}
         env:
@@ -115,7 +119,7 @@ jobs:
       # AND PR to main Opened
       # Assert PR Closed with Merge from ${{ env._USER_BR }} to 'release' branch, on ${{ env._GO_REPO_NAME }} github repo
       # AND PR to main Opened
-      - name: Assert 'release-me' Git Ops event 1st phase's state (PR to 'release' closed with merge, PR to 'main' opened) reached
+      - name: Assert PR to 'release' closed with merge, PR to 'main' opened reached
         env:
           # pass in env vars required for test case
           GO_INCOMING_BRANCH: ${{ env._USER_BR }}
@@ -177,17 +181,33 @@ jobs:
           git tag "${{ env.TAG_PHASE_2 }}"
           git push origin "${{ env.TAG_PHASE_2 }}"
 
+      # DEBUG
+      - run: git log --all --oneline --decorate --graph
+        working-directory: ${{ env._GO_DIR }}
+
       # THEN Assert that an RC tag was pushed on Release Branch
       - name: Assert that the RC tag '${{ env.EXPECTED_RC_TAG }}' was pushed on '${{ env.RELEASE_BR }}' Branch
         env:
           token: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          git branch -a
+
           start_time=$(date +%s)
+
+          # DEBUG
+          echo "[DEBUG] SHA of latest commit on '${{ env.RELEASE_BR }}' branch, of '${{ env._GO_REPO }}' repo"
+          curl -s -H "Authorization: token ${token}" "https://api.github.com/repos/${{ env._GO_REPO }}/git/refs/heads/${{ env.RELEASE_BR }}"
+          echo
 
           # Get the commit SHA of the head of the ${{ env.RELEASE_BR }} branch
           branch_sha=$(curl -s -H "Authorization: token ${token}" \
             "https://api.github.com/repos/${{ env._GO_REPO }}/git/refs/heads/${{ env.RELEASE_BR }}" | jq -r '.object.sha')
           while true; do
+
+            # DEBUG
+            echo "[DEBUG] SHA of '${{ env.EXPECTED_RC_TAG }}' Tag, of '${{ env._GO_REPO }}' repo"
+            curl -s -H "Authorization: token ${token}" "https://api.github.com/repos/${{ env._GO_REPO }}/git/refs/tags/${{ env.EXPECTED_RC_TAG }}"
+            echo
 
             # Get the list of tags in the repository
             tag_sha=$(curl -s -H "Authorization: token ${token}" \
