@@ -338,7 +338,7 @@ jobs:
       # Release branch, we assume client repo adopts/uses
       RELEASE_BR: release
       # GIVEN / Internal Environment Variables for DRY
-      _USER_BR: "user-branch-${{ github.run_id }}"
+      _USER_BR: "other-user-branch-${{ github.run_id }}"
       _GO_OWNER: 'boromir674'
       _GO_REPO_NAME: 'gitops-automation'
       _GO_REPO: 'boromir674/gitops-automation'
