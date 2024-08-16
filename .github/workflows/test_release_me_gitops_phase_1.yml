@@ -374,7 +374,7 @@ jobs:
           git config --local user.email "boromir674@hotmail.com"
 
           git checkout -b ${_USER_BR}
-          echo "User Branch '${_USER_BR}'" > "${TOPICAL_BRANCH_CHANGES_FILE}"
+          echo "User Branch '${_USER_BR}'" >> "${TOPICAL_BRANCH_CHANGES_FILE}"
           git add "${TOPICAL_BRANCH_CHANGES_FILE}"
 
           git commit -m "auto-commit: write (literally) the User's Branch name '${_USER_BR}' to a file"
