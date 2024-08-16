@@ -7,7 +7,7 @@ name: "Verify open PR to main when board-n-release Git Ops event"
 #   - For now we require that "User Br" is a direct descendant of 'main', to guarantee no conflicts
 # Assuming any Github Protection 'release' Rules will be Green
 
-# WHEN a 'board-n-release' event is fired from client repo
+# WHEN a 'release-me' event is fired from client repo
 
 # THEN assert PR has opened and closed from User Br to 'release' br
 
@@ -17,7 +17,8 @@ name: "Verify open PR to main when board-n-release Git Ops event"
 
 # AND GIVEN we emulate some plausible git steps, like Changelog.md update and Sem Ver bump 
 
-# WHEN we trigger the 2nd `release-me` Phase of the Git Ops Process
+# WHEN we fire-up the auto-prod-* event to trigger 2nd `release-me` Phase of the Git Ops Process
+# AND new Sem Ver is one of of Major, Minor, or Patch
 
 # THEN Assert that the PR to main closed with code merge
 
@@ -32,7 +33,7 @@ on:
       - "go-board-n-release-g"
 
 jobs:
-  setup:
+  test_with_prod_sem_version:
     runs-on: ubuntu-latest
     env:
       # Release branch, we assume client repo adopts/uses
@@ -66,6 +67,7 @@ jobs:
       - run: git log --all --oneline --decorate --graph
         working-directory: ${{ env._GO_DIR }}
 
+      # EMULATE a User Branch with changes to be released
       - name: Make dummy changes on local User Branch '${_USER_BR}'
         working-directory: ${{ env._GO_DIR }}
         env:
@@ -311,7 +313,7 @@ jobs:
 
       # and that a Github Release was also made from that tag (which is now on main branch)
 
-
+      # CLEAN UP kind of step
       - name: Put release branch to same commit as main to avoid future conflicts
         if: always()
         working-directory: ${{ env._GO_DIR }}
