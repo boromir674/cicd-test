@@ -327,3 +327,300 @@ jobs:
           git pull origin release
           git rebase main
           git push origin release
+
+
+  test_with_dev_sem_version:
+    # Runs after success, or failure, of the previous job
+    needs: test_with_prod_sem_version
+    if: always()
+    runs-on: ubuntu-latest
+    env:
+      # Release branch, we assume client repo adopts/uses
+      RELEASE_BR: release
+      # GIVEN / Internal Environment Variables for DRY
+      _USER_BR: "user-branch-${{ github.run_id }}"
+      _GO_OWNER: 'boromir674'
+      _GO_REPO_NAME: 'gitops-automation'
+      _GO_REPO: 'boromir674/gitops-automation'
+      _GO_DIR: "go-repo"
+      # TEST CASE 2 - DATA
+      # Prev Version: v1.2.0
+      # CONSTANT Env Var for `auto-prod` tag, of `release-me` process phase 2 
+      TAG_PHASE_2: "auto-prod-1.2.1-dev"
+      EXPECTED_RC_TAG: "v1.2.1-rc"
+    steps:
+
+      # GIVEN a Client Repo with 'main' and 'release' branches
+      - name: Checkout '${{ env._GO_REPO }}' Git Ops Compatible Repository
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env._GO_REPO }}
+          ref: "main"
+          path: ${{ env._GO_DIR }}
+          token: ${{ secrets.PUSH_TO_GITOPS_AUTOMATION }}
+          # use token with PAT value with push permission to avoid using 3rd-party action below
+
+      # DEBUG
+      - run: git log --all --oneline --decorate --graph
+        working-directory: ${{ env._GO_DIR }}
+
+      # EMULATE a User Branch with changes to be released
+      - name: Make dummy changes on local User Branch '${_USER_BR}'
+        working-directory: ${{ env._GO_DIR }}
+        env:
+          TOPICAL_BRANCH_CHANGES_FILE: "changes-from-topical-branch.txt"
+        run: |
+          git config --local user.name "Konstantinos Lampridis"
+          git config --local user.email "boromir674@hotmail.com"
+
+          git checkout -b ${_USER_BR}
+          echo "User Branch '${_USER_BR}'" > "${TOPICAL_BRANCH_CHANGES_FILE}"
+          git add "${TOPICAL_BRANCH_CHANGES_FILE}"
+
+          git commit -m "auto-commit: write (literally) the User's Branch name '${_USER_BR}' to a file"
+
+      - name: Push User Branch on '${{ env._GO_REPO }}' repo
+        working-directory: ${{ env._GO_DIR }}
+        run: git push origin ${_USER_BR}
+
+      # WHEN a 'board-n-release' event is fired from client repo
+      - name: Fire 'board-n-release' git tag event, scoped on '${{ env._GO_REPO }}' repo
+        env:
+          TAG: "release-me"
+        working-directory: ${{ env._GO_DIR }}
+        run: |
+          # if tag exists on remote delete it
+          git push --delete origin ${TAG} || echo "No tag to delete"
+
+          # if tag exists on local checkout, delete it
+          git tag -d ${TAG} || echo "No tag to delete"
+
+          git tag ${TAG}
+          git push origin ${TAG}
+
+      # Since the assertions require waiting for "things" to happen on remotes we employ pytest
+      - uses: actions/setup-python@v4
+        with:
+          python-version: 3.11
+      - name: 'Install Tooling: tox v3.28'
+        run: pip install tox==3.28
+
+      - uses: actions/checkout@v4
+        name: 'Checkout our Test Suite'
+
+      # create deterministic and reproducible environment for pytest
+      - name: 'Use Pinned/Locked python dependencies that satisfy version constraints'
+        run: tox -vv -e pin-deps
+      - name: 'Build deterministic python virtual environment'
+        run: tox -vv -e test --notest
+
+      # THEN assert PR closed with Merge from User Br to 'release' br
+      # AND PR to main Opened
+      # Assert PR Closed with Merge from ${{ env._USER_BR }} to 'release' branch, on ${{ env._GO_REPO_NAME }} github repo
+      # AND PR to main Opened
+      - name: Assert PR to 'release' closed with merge, PR to 'main' opened reached
+        env:
+          # pass in env vars required for test case
+          GO_INCOMING_BRANCH: ${{ env._USER_BR }}
+          GO_RELEASE_BRANCH: ${{ env.RELEASE_BR }}
+          GITHUB_TOKEN: ${{ secrets.READ_PR_GITOPS_AUTOMATION }}
+        run: tox -vvs -e test -- -n auto -vvs -k 'test_pr_to_release_opened_n_closed or test_pr_to_main_opened' --run-gitops
+
+      #### TEST PHASE 2 ####
+
+      # [OPT] assert the expected labels has been put to PR -> 'release'
+
+      - name: Checkout '${{ env._GO_REPO }}' Git Ops Compatible Repository
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env._GO_REPO }}
+          ref: "main"
+          path: ${{ env._GO_DIR }}
+          set-safe-directory: ''  # `git config --global --add safe.directory <path>`
+          token: ${{ secrets.PUSH_TO_GITOPS_AUTOMATION }}
+
+      # AND GIVEN we emulate some plausible git steps on Release branch
+      # EG: Changelog.md update and Sem Ver bump
+      - name: Sync '${{ env.RELEASE_BR }}' branch
+        working-directory: ${{ env._GO_DIR }}
+        env:
+          release: ${{ env.RELEASE_BR }}
+        run: |
+          git fetch
+          git branch --track $release "origin/${release}" || echo "Found local Branch '${release}'"
+          git checkout "${release}"
+          git pull origin "${release}"
+
+      # Sem Ver Bump in sources is not relevant for the gitops-automation project
+
+      # Emulate Changelog.md update
+      - name: "Emulate updating CHANGELOG.md with new Release entry"
+        working-directory: ${{ env._GO_DIR }}
+        run: |
+          echo "## [Unreleased]" > CHANGELOG.md
+          echo "### Added" >> CHANGELOG.md
+          echo "- ${_USER_BR}" >> CHANGELOG.md
+          echo "" >> CHANGELOG.md
+          echo "" >> CHANGELOG.md
+          cat CHANGELOG.md
+
+          git add CHANGELOG.md
+          git config user.name "Konstantinos Lampridis"
+          git config user.email "boromir674@hotmail.com"
+          git commit -m "auto-commit: update CHANGELOG.md with dummy Release entry"
+          git push origin ${{ env.RELEASE_BR }}
+
+      # WHEN we trigger the 2nd `release-me` Phase of the Git Ops Process
+      - name: "Push Git Tag '${{ env.TAG_PHASE_2 }}'"
+        working-directory: ${{ env._GO_DIR }}
+        run: |
+          git tag -d "${{ env.TAG_PHASE_2 }}" || echo "No tag to delete"
+          git push --delete origin "${{ env.TAG_PHASE_2 }}" || echo "No tag to delete"
+
+          git tag "${{ env.TAG_PHASE_2 }}"
+          git push origin "${{ env.TAG_PHASE_2 }}"
+
+      # DEBUG
+      - run: git log --all --oneline --decorate --graph
+        working-directory: ${{ env._GO_DIR }}
+
+      # THEN Assert that an RC tag was pushed on Release Branch
+      - name: Assert that the RC tag '${{ env.EXPECTED_RC_TAG }}' was pushed on '${{ env.RELEASE_BR }}' Branch
+        env:
+          token: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git branch -a
+
+          start_time=$(date +%s)
+
+          # DEBUG
+          echo "[DEBUG] SHA of latest commit on '${{ env.RELEASE_BR }}' branch, of '${{ env._GO_REPO }}' repo"
+          curl -s -H "Authorization: token ${token}" "https://api.github.com/repos/${{ env._GO_REPO }}/git/refs/heads/${{ env.RELEASE_BR }}"
+          echo
+
+          # Get the commit SHA of the head of the ${{ env.RELEASE_BR }} branch
+          branch_sha=$(curl -s -H "Authorization: token ${token}" \
+            "https://api.github.com/repos/${{ env._GO_REPO }}/git/refs/heads/${{ env.RELEASE_BR }}" | jq -r '.object.sha')
+          while true; do
+
+            # DEBUG
+            echo "[DEBUG] SHA of '${{ env.EXPECTED_RC_TAG }}' Tag, of '${{ env._GO_REPO }}' repo"
+            curl -s -H "Authorization: token ${token}" "https://api.github.com/repos/${{ env._GO_REPO }}/git/refs/tags/${{ env.EXPECTED_RC_TAG }}"
+            echo
+
+            # Get the list of tags in the repository
+            tag_sha=$(curl -s -H "Authorization: token ${token}" \
+              "https://api.github.com/repos/${{ env._GO_REPO }}/git/refs/tags/${{ env.EXPECTED_RC_TAG }}" | jq -r '.object.sha')
+
+            # Compare the commit SHA of the tag and the release branch
+            if [ "$branch_sha" = "$tag_sha" ]; then
+              echo "[INFO] Asserted RC Tag '${{ env.EXPECTED_RC_TAG }}' was pushed on the ${{ env.RELEASE_BR }} Branch"
+              echo PR_RELEASE_TIMESTAMP=$(date +%s) >> $GITHUB_ENV
+              break
+            else
+              current_time=$(date +%s)
+              elapsed_time=$(($current_time - $start_time))
+
+              if [ $elapsed_time -ge 30 ]; then
+                echo "[Assertion Error] RC Tag was not pushed on the ${{ env.RELEASE_BR }} Branch"
+                echo "Exiting with error..."
+                exit 1
+              fi
+            fi
+
+            # Sleep for 3.5 seconds
+            sleep 3.5
+          done
+
+      # in the future we can assert whether the tag was a DEV Release or a PROD Release
+
+
+      # THEN Assert that exatly one PR to main closed, with code merge, after PR_RELEASE_TIMESTAMP
+      - name: Assert that the PR to main closed with code merge
+        env:
+          token: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Get the commit SHA of Release Branch
+          release_sha=$(curl -s -H "Authorization: token ${token}" \
+            "https://api.github.com/repos/${{ env._GO_REPO }}/git/refs/heads/${{ env.RELEASE_BR }}" | jq -r '.object.sha')
+
+          echo "[INFO] Commit Sha of Release Br: $release_sha"
+
+          sleep 12
+          start_time=$(date +%s)
+
+          done=false
+          while [ $done == false ]; do
+
+            # Get the list of PRs in the repository
+            # invariant of ?head=boromir:release, since we accept only later than PR_RELEASE_TIMESTAMP
+
+            # PRs that are closed with Merge: JSON array (of objects)
+            prs=$(curl -s -H "Authorization: token ${token}" "https://api.github.com/repos/${{ env._GO_REPO }}/pulls?state=closed?base=main" | jq -r '[.[] | {merged_at: .merged_at, head_sha: .head.sha}] | map(select(.merged_at != null))')
+
+            # echo "[DEBUG] PRs: $prs"
+
+            for pr in $(echo ${prs} | jq -r '.[] | @base64'); do
+              merged_at=$(echo "${pr}" | base64 --decode | jq -r '.merged_at')
+              head_sha=$(echo "${pr}" | base64 --decode | jq -r '.head_sha')
+
+              echo
+              echo "[DEBUG] Considering PR:"
+              echo "${pr}" | base64 --decode | jq -r '.'
+
+              # extract merged_at date and convert to seconds, if not null
+              seconds=$(date -d "${merged_at}" +%s)
+              echo "[DEBUG] Computed seconds: $seconds"
+
+              # consider only if newer than PR_RELEASE_TIMESTAMP seconds
+              if [ $seconds -ge $PR_RELEASE_TIMESTAMP ]; then
+                # extract the commit SHA of the PR
+
+                pr_sha=$head_sha
+                echo "[DEBUG] Computed SHA: $pr_sha"
+
+                # consider only Release --> Main PRs
+                # closed with code merge is already guaranteed here
+                if [ "$pr_sha" == "$release_sha" ]; then
+                  echo "[INFO] Asserted a PR to main closed, with code merge to Main"
+                  done=true
+                  break
+                fi
+              fi
+            done
+
+            # Update the current Elapsed time
+            current_time=$(date +%s)
+            elapsed_time=$(($current_time - $start_time))
+
+            # Exit with Error if max Elapsed time is reached
+            if [[ "$done" == "false" && "$elapsed_time" -ge 30 ]]; then
+              echo "[Assertion Error] PR to main did not close with code merge"
+              echo "Exiting with error..."
+              exit 1
+            fi
+
+            # Sleep for 8 seconds
+            sleep 8
+
+          done
+
+      # in the future we may assert that Main Br got PROD tag (v1.0.0, v1.2.0-dev, etc)
+      # given the auto-prod-1.0.0 event tag
+
+      # and that a Github Release was also made from that tag (which is now on main branch)
+
+      # CLEAN UP kind of step
+      - name: Put release branch to same commit as main to avoid future conflicts
+        if: always()
+        working-directory: ${{ env._GO_DIR }}
+        env:
+          release: ${{ env.RELEASE_BR }}
+        run: |
+          git fetch
+          git checkout main
+          git pull origin main
+          git checkout release
+          git pull origin release
+          git rebase main
+          git push origin release
