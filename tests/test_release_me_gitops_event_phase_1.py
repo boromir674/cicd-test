@@ -92,7 +92,7 @@ def verify_pr_opened_n_closed(
             # Can be one of: open, closed
 
         # we poll and try to encounter first 'open' and then 'closed' PR
-        # we dim success if we only find a 'closed', assuming we were slow to start poll
+        # we also dim success if we only find a 'closed', assuming we were slow to start poll
 
         encountered_closed = False
 
