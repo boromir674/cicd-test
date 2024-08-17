@@ -349,7 +349,7 @@ jobs:
       # Prev Version: v1.2.0
       # CONSTANT Env Var for `auto-prod` tag, of `release-me` process phase 2 
       TAG_PHASE_2: "auto-prod-1.2.1-dev"
-      EXPECTED_RC_TAG: "v1.2.1-rc"
+      EXPECTED_RC_TAG: "v1.2.1-dev"
     steps:
 
       # GIVEN a Client Repo with 'main' and 'release' branches
