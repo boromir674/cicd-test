@@ -241,8 +241,8 @@ jobs:
               fi
             fi
 
-            # Sleep for 3.5 seconds
-            sleep 3.5
+            # Sleep for 5 seconds
+            sleep 5
           done
 
       # in the future we can assert whether the tag was a DEV Release or a PROD Release
