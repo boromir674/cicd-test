@@ -319,7 +319,9 @@ jobs:
 
           done
 
-      - run: sleep 3
+      - run: git tag -l
+      - run: sleep 10
+      - run: git tag -l
 
       # THEN Assert that after Code merge to Main, a v* Tag was pushed to main
       - name: "Check if v* Git Tag was pushed to '${{ env.MAIN_BR }}' branch, after Code merge to ${{ env.MAIN_BR }} branch"
