@@ -35,8 +35,9 @@ GO_RELEASE_ME_TEST_WORKFLOWS = [
     + GO_RELEASE_ME_TEST_WORKFLOWS
 )
 def yaml_workflow(request, github_workflow):
-    import yaml
     from pathlib import Path
+
+    import yaml
 
     workflow_file_name: str = request.param
     path_2_github_workflow: t.Dict[str, t.Any] = github_workflow
