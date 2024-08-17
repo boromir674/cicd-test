@@ -173,6 +173,7 @@ def yaml_workflow(request, github_workflow):
         ), f"Failed to find all jobs in {workflow_file_name}. Jobs: {jobs}"
 
     from pathlib import Path
+
     try:
         workflow_key = '.github/workflows/{local_file_name}'.format(
             local_file_name=Path(workflow_file_name).name
@@ -184,10 +185,13 @@ def yaml_workflow(request, github_workflow):
         }
     except KeyError as e:
         print(f"Exception: {e}")
-        print(f"Available keys: [\n" + "\n".join(sorted(name_2_github_workflow.keys())) + "\n]")
+        print(
+            f"Available keys: [\n" + "\n".join(sorted(name_2_github_workflow.keys())) + "\n]"
+        )
         print(f"Workflow Key: {workflow_key}")
         print(f"Workflow File: {workflow_file_name}")
         raise
+
 
 ## HELPER indepodent/pure FUNCTIONS, wrapping http requests##
 
