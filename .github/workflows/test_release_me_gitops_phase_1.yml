@@ -39,6 +39,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       # Release branch, we assume client repo adopts/uses
+      MAIN_BR: main
       RELEASE_BR: release
       # GIVEN / Internal Environment Variables for DRY
       _USER_BR: "user-branch-${{ github.run_id }}"
@@ -318,57 +319,25 @@ jobs:
 
           done
 
+      - run: sleep 3
+
       # THEN Assert that after Code merge to Main, a v* Tag was pushed to main
-      - name: Assert that the ${{ env.EXPECTED_PROD_TAG }} Tag was pushed on 'main' Branch
-        env:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          # times in seconds
-          TIME_TO_WAIT: 30
-          POLL_FREQUENCY: 3.5
+      - name: "Check if v* Git Tag was pushed to '${{ env.MAIN_BR }}' branch, after Code merge to ${{ env.MAIN_BR }} branch"
+        uses: rickstaa/action-contains-tag@v1
+        id: main_contains_tag
+        with:
+          reference: ${{ env.MAIN_BR }}
+          tag: "${{ env.EXPECTED_PROD_TAG }}"
+
+      - name: Assert that the ${{ env.EXPECTED_PROD_TAG }} Tag was pushed on '${{ env.MAIN_BR }}' Branch
         run: |
-          start_time=$(date +%s)
-
-          main_branch_object=$(curl -s -H "Authorization: token ${token}" \
-            "https://api.github.com/repos/${{ env._GO_REPO }}/git/refs/heads/main" | jq -r '.')
-
-          # DEBUG
-          echo "[DEBUG] Latest Commit on 'main' branch, of '${{ env._GO_REPO }}' repo"
-          echo "$main_branch_object" | jq -r '.object.sha'
-          echo
-
-          # Get the commit SHA of the head of the main branch
-          main_br_sha=$(echo "$main_branch_object" | jq -r '.object.sha')
-
-          while true; do
-
-            tag_object=$(curl -s -H "Authorization: token ${token}" \
-              "https://api.github.com/repos/${{ env._GO_REPO }}/git/refs/tags/${{ env.EXPECTED_PROD_TAG }}" | jq -r '.')
-
-            # DEBUG
-            echo "[DEBUG] Tag Object of '${{ env.EXPECTED_PROD_TAG }}' Tag"
-            echo "$tag_object" | jq -r '.'
-            echo
-
-            tag_sha=$(echo "$tag_object" | jq -r '.object.sha')
-
-            # Compare the commit SHA of the tag and the release branch
-            if [ "$main_br_sha" = "$tag_sha" ]; then
-              echo "[INFO] Asserted PROD Tag '${{ env.EXPECTED_PROD_TAG }}' was pushed on the main Branch"
-              break
-            else
-              current_time=$(date +%s)
-              elapsed_time=$(($current_time - $start_time))
-
-              if [ $elapsed_time -ge ${{ env.TIME_TO_WAIT }} ]; then
-                echo "[Assertion Error] PROD Tag was not pushed on the main Branch"
-                echo "Exiting with error..."
-                exit 1
-              fi
-            fi
-
-            # Sleep for ${{ env.POLL_FREQUENCY }} seconds
-            sleep ${{ env.POLL_FREQUENCY }}
-          done
+          if steps.main_contains_tag.outputs.contains_tag == 'true'; then
+            echo "**Asserted PROD Tag '${{ env.EXPECTED_PROD_TAG }}' was pushed** on the ${{ env.MAIN_BR }} Branch" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "[Assertion Error] PROD Tag was not pushed on the ${{ env.MAIN_BR }} Branch"
+            echo "Exiting with error..."
+            exit 1
+          fi
 
       # in the future we may assert that Github Release was also made from that tag (which is now on main branch)
 
@@ -386,7 +355,6 @@ jobs:
           git pull origin release
           git rebase main
           git push origin release
-
 
 
 
@@ -735,3 +703,61 @@ jobs:
   #         git pull origin release
   #         git rebase main
   #         git push origin release
+
+
+
+
+
+
+
+
+        # env:
+        #   token: ${{ secrets.GITHUB_TOKEN }}
+        #   # times in seconds
+        #   TIME_TO_WAIT: 30
+        #   POLL_FREQUENCY: 3.5
+        # run: |
+        #   start_time=$(date +%s)
+
+        #   main_branch_object=$(curl -s -H "Authorization: token ${token}" \
+        #     "https://api.github.com/repos/${{ env._GO_REPO }}/git/refs/heads/main" | jq -r '.')
+
+        #   # DEBUG
+        #   echo "[DEBUG] Latest Commit on 'main' branch, of '${{ env._GO_REPO }}' repo"
+        #   echo "$main_branch_object" | jq -r '.object.sha'
+        #   echo
+
+        #   # Get the commit SHA of the head of the main branch
+        #   main_br_sha=$(echo "$main_branch_object" | jq -r '.object.sha')
+
+        #   while true; do
+
+        #     tag_object=$(curl -s -H "Authorization: token ${token}" \
+        #       "https://api.github.com/repos/${{ env._GO_REPO }}/git/refs/tags/${{ env.EXPECTED_PROD_TAG }}" | jq -r '.')
+
+        #     # DEBUG
+        #     echo "[DEBUG] Tag Object of '${{ env.EXPECTED_PROD_TAG }}' Tag"
+        #     echo "$tag_object" | jq -r '.'
+        #     echo
+
+        #     tag_sha=$(echo "$tag_object" | jq -r '.object.sha')
+
+        #     # Compare the commit SHA of the tag and the release branch
+        #     if [ "$main_br_sha" = "$(curl -s -H "Authorization: token ${token}" \
+        #       "https://api.github.com/repos/${{ env._GO_REPO }}/git/refs/tags/${{ env.EXPECTED_PROD_TAG }}" | jq -r '.')" ]; then
+        #       echo "[INFO] Asserted PROD Tag '${{ env.EXPECTED_PROD_TAG }}' was pushed on the main Branch"
+        #       break
+        #     else
+        #       current_time=$(date +%s)
+        #       elapsed_time=$(($current_time - $start_time))
+
+        #       if [ $elapsed_time -ge ${{ env.TIME_TO_WAIT }} ]; then
+        #         echo "[Assertion Error] PROD Tag was not pushed on the main Branch"
+        #         echo "Exiting with error..."
+        #         exit 1
+        #       fi
+        #     fi
+
+        #     # Sleep for ${{ env.POLL_FREQUENCY }} seconds
+        #     sleep ${{ env.POLL_FREQUENCY }}
+        #   done
