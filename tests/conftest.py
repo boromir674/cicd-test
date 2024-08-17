@@ -36,11 +36,11 @@ GO_RELEASE_ME_TEST_WORKFLOWS = [
 )
 def yaml_workflow(request, github_workflow):
     import yaml
+    from pathlib import Path
 
     workflow_file_name: str = request.param
     path_2_github_workflow: t.Dict[str, t.Any] = github_workflow
     yaml_workflow = yaml.safe_load((WORKFLOWS_DIR / workflow_file_name).read_bytes())
-    yaml_workflow_name: str = yaml_workflow['name']
 
     jobs = {
         v.get('name', k): 'failure' if 'fail' in k else 'skipped' if 'skip' in k else 'success'
@@ -172,25 +172,15 @@ def yaml_workflow(request, github_workflow):
             len(jobs) == expected_jobs
         ), f"Failed to find all jobs in {workflow_file_name}. Jobs: {jobs}"
 
-    from pathlib import Path
+    workflow_key = '.github/workflows/{local_file_name}'.format(
+        local_file_name=Path(workflow_file_name).name
+    )
+    yield path_2_github_workflow[workflow_key], {
+        'conclusion': 'success' if 'red' not in workflow_file_name else 'failure',
+        'status': 'completed',
+        'jobs': dict(jobs, call_with_more_needed_than_allow_skipped='success'),
+    }
 
-    try:
-        workflow_key = '.github/workflows/{local_file_name}'.format(
-            local_file_name=Path(workflow_file_name).name
-        )
-        yield path_2_github_workflow[workflow_key], {
-            'conclusion': 'success' if 'red' not in workflow_file_name else 'failure',
-            'status': 'completed',
-            'jobs': dict(jobs, call_with_more_needed_than_allow_skipped='success'),
-        }
-    except KeyError as e:
-        print(f"Exception: {e}")
-        print(
-            f"Available keys: [\n" + "\n".join(sorted(name_2_github_workflow.keys())) + "\n]"
-        )
-        print(f"Workflow Key: {workflow_key}")
-        print(f"Workflow File: {workflow_file_name}")
-        raise
 
 
 ## HELPER indepodent/pure FUNCTIONS, wrapping http requests##
