@@ -176,6 +176,13 @@ jobs:
           git commit -m "auto-commit: update CHANGELOG.md with dummy Release entry"
           git push origin ${{ env.RELEASE_BR }}
 
+      # GIVEN the User passes Version in Auto Prod that does not collide with existing tag
+      - name: Delete Tag to avoid collision
+        working-directory: ${{ env._GO_DIR }}
+        run: |
+          git tag -d "${{ env.EXPECTED_PROD_TAG }}" || echo "No tag to delete"
+          git push --delete origin "${{ env.EXPECTED_PROD_TAG }}" || echo "No tag to delete"
+
       # WHEN we trigger the 2nd `release-me` Phase of the Git Ops Process
       - name: "Push Git Tag '${{ env.TAG_PHASE_2 }}'"
         working-directory: ${{ env._GO_DIR }}
@@ -326,11 +333,11 @@ jobs:
 
           # DEBUG
           echo "[DEBUG] Latest Commit on 'main' branch, of '${{ env._GO_REPO }}' repo"
-          echo "$main_branch_object" | jq '.object.sha'
+          echo "$main_branch_object" | jq -r '.object.sha'
           echo
 
           # Get the commit SHA of the head of the main branch
-          main_br_sha=$(echo "$main_branch_object" | jq '.object.sha')
+          main_br_sha=$(echo "$main_branch_object" | jq -r '.object.sha')
 
           while true; do
 
@@ -338,12 +345,11 @@ jobs:
               "https://api.github.com/repos/${{ env._GO_REPO }}/git/refs/tags/${{ env.EXPECTED_PROD_TAG }}" | jq -r '.')
 
             # DEBUG
-            echo "[DEBUG] SHA of '${{ env.EXPECTED_PROD_TAG }}' Tag, of '${{ env._GO_REPO }}' repo"
-            echo "$tag_object" | jq '.object.sha'
+            echo "[DEBUG] Tag Object of '${{ env.EXPECTED_PROD_TAG }}' Tag"
+            echo "$tag_object" | jq -r '.'
             echo
 
-            # Get the list of tags in the repository
-            tag_sha=$(echo "$tag_object" | jq '.object.sha')
+            tag_sha=$(echo "$tag_object" | jq -r '.object.sha')
 
             # Compare the commit SHA of the tag and the release branch
             if [ "$main_br_sha" = "$tag_sha" ]; then
