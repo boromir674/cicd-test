@@ -27,6 +27,8 @@ on:
   push:
     branches:
       - "test"
+    # RUN TEST: export tt='go-board-n-release'; git tag -d "$tt"; git push --delete origin "$tt"; git tag "$tt" && git push origin "$tt"
+
     tags:
       - "all"
       - "go-board-n-release"
