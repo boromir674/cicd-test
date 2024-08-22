@@ -334,7 +334,9 @@ jobs:
 
           while true; do
             git fetch --tags
-            diffs=$(git diff --name-only "${{ env.EXPECTED_PROD_TAG }}" "${{ env.MAIN_BR }}") || exit_code=$?
+
+            diffs=$(git diff --name-only "${{ env.EXPECTED_PROD_TAG }}" "${{ env.MAIN_BR }}")
+            exit_code=$?
 
             if [ $exit_code -eq 0 ] && [ -z "$diffs" ]; then
               echo "[INFO] Asserted PROD Tag '${{ env.EXPECTED_PROD_TAG }}' was pointed to same commit as head of ${{ env.MAIN_BR }} Branch"
