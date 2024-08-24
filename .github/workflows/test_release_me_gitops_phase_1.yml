@@ -247,7 +247,6 @@ jobs:
           done
 
       # in the future we can assert whether the tag was a DEV Release or a PROD Release
-      
 
       # THEN Assert that exactly one PR to main closed, with code merge, after PR_RELEASE_TIMESTAMP
       - name: Assert that the PR to main closed with code merge
@@ -335,11 +334,11 @@ jobs:
           while true; do
             git fetch --tags
 
-            diffs=$(git diff --name-only "${{ env.EXPECTED_PROD_TAG }}" "${{ env.MAIN_BR }}")
-            exit_code=$?
+            tag_not_yet_pushed=false
+            diffs=$(git diff --name-only "${{ env.EXPECTED_PROD_TAG }}" "${{ env.MAIN_BR }}") || tag_not_yet_pushed=true
 
-            if [ $exit_code -eq 0 ] && [ -z "$diffs" ]; then
-              echo "[INFO] Asserted PROD Tag '${{ env.EXPECTED_PROD_TAG }}' was pointed to same commit as head of ${{ env.MAIN_BR }} Branch"
+            if [ "$tag_not_yet_pushed" = false ] && [ -z "$diffs" ]; then
+              echo "[INFO] Asserted PROD Tag '${{ env.EXPECTED_PROD_TAG }}' was pushed on the ${{ env.MAIN_BR }} Branch"
               break
             fi
 
