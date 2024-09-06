@@ -48,6 +48,7 @@ jobs:
       _GO_REPO: 'boromir674/gitops-automation'
       _GO_DIR: "go-repo"
       PREVIOUS_RELEASE_TAG: 'v0.1.0'
+      SEM_VER_RESET: '0.1.0'
       # TEST CASE 1 - DATA
       # CONSTANT Env Var for `auto-prod` tag, of `release-me` process phase 2 
       TAG_PHASE_2: "auto-prod-1.0.0"
@@ -183,6 +184,8 @@ jobs:
 
       - name: "Programmatically update CHANGELOG.md with new Release entry"
         working-directory: ${{ env._GO_DIR }}
+        env:
+          SEM_VER_RESET: '0.1.0'
         run: |
           # RESET CHANGELOG.md
           echo "# Changelog
@@ -191,7 +194,7 @@ jobs:
 
           This project adheres to [Semantic Versioning](https://semver.org/).
 
-          ## 0.1.0 (2024-09-24)
+          ## ${{ env.SEM_VER_RESET }} (2024-09-24)
 
           First Ever no-release to kickstart the project.
           " > CHANGELOG.md
@@ -203,8 +206,9 @@ jobs:
 
           ${{ steps.group_commits.outputs.content }}
           "
+
           # Insert new entry in CHANGELOG.md, below header and above existing release entries
-          sed -i "0,/^## [0-9]\+\.[0-9]\+\.[0-9]\+/s//${NEW_ENTRY}\n&/" CHANGELOG.md
+          echo "$NEW_ENTRY" | python -c 'import re, sys; content=sys.stdin.read(); regex=sys.argv[1]; file_path=sys.argv[2]; pattern=re.compile(regex); file=open(file_path, "r+"); file_content=file.read(); match=re.search(regex, file_content, re.MULTILINE); NL = "\n"; exec("if match:\n    file.seek(match.start()); file.write(content + NL + file_content[match.start():])\nelse:\n    print(\"NO MATCH\")"); file.close()' "^## ${{ env.SEM_VER_RESET }}" "CHANGELOG.md"
 
           cat CHANGELOG.md
 
@@ -455,7 +459,7 @@ jobs:
           git rebase main
           git push origin release
 
-          # delete tag v1.0.0 and make v0.1.0 the latest semver tag
-          git push origin -d v1.0.0 || echo "No tag to delete"
-          git tag -f v0.1.0
-          git push origin v0.1.0 -f
+          # delete tag ${{ env.PREVIOUS_RELEASE_TAG }} and make v0.1.0 the latest semver tag
+          git push origin -d ${{ env.PREVIOUS_RELEASE_TAG }} || echo "No tag to delete"
+          git tag -f ${{ env.PREVIOUS_RELEASE_TAG }}
+          git push origin ${{ env.PREVIOUS_RELEASE_TAG }} -f
