@@ -162,12 +162,12 @@ jobs:
       # Sem Ver Bump in sources is not relevant for the gitops-automation project
 
       ## GIVEN Automatic CHANGELOG.md update
-      - name: Generate Linear Commit History from HEAD to main
+      - name: Generate Linear Commit History from HEAD to 'previous release' (ie latest tag by semver or main branch)
         id: commit_generator
-        working-directory: ${{ env._GO_DIR }}
-        uses: boromir674/action-commit-parser@v1.0.0
+        uses: boromir674/action-commit-parser@v1.1.0
         with:
           to_ref: ${{ env.PREVIOUS_RELEASE_TAG }}
+          dir: ${{ env._GO_DIR }}
 
       - name: 'Convert JSON Array {message: str}[] into JSON Array str[] and store in a GITHUB_ENV Variable'
         # Yaml string is formatted into JSON github expression, which is a ready-to-use quoted thing to use in shell/bash
