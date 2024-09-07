@@ -86,7 +86,7 @@ jobs:
           echo "User Branch '${_USER_BR}'" > "${TOPICAL_BRANCH_CHANGES_FILE}"
           git add "${TOPICAL_BRANCH_CHANGES_FILE}"
 
-          git commit -m "feat: emulated commit for automated testing purposes"
+          git commit -m "feat: emulated commit with Run ID ${{ github.run_id }} for automated testing purposes"
 
       - name: Push User Branch on '${{ env._GO_REPO }}' repo
         working-directory: ${{ env._GO_DIR }}
