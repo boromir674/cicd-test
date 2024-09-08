@@ -379,6 +379,7 @@ jobs:
           start_time=$(date +%s)
 
           while true; do
+            git tag -d $(git tag --list)
             git fetch --tags
 
             tag_not_yet_pushed=false
