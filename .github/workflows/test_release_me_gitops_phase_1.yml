@@ -167,7 +167,8 @@ jobs:
         id: commit_generator
         uses: boromir674/action-commit-parser@v1.1.0
         with:
-          to_ref: ${{ env.PREVIOUS_RELEASE_TAG }}
+          # to_ref: ${{ env.PREVIOUS_RELEASE_TAG }}
+          to_ref: ${{ env.MAIN_BR }}
           dir: ${{ env._GO_DIR }}
 
       - name: 'Convert JSON Array {message: str}[] into JSON Array str[] and store in a GITHUB_ENV Variable'
@@ -200,7 +201,7 @@ jobs:
           " > CHANGELOG.md
 
           # Automatically Compute New Release Entry from Commits
-          NEW_ENTRY="## ${{ env.EXPECTED_PROD_TAG }} ($(date -u +%Y/%m/%d))
+          NEW_ENTRY="## ${{ env.EXPECTED_PROD_TAG }} ($(date -u +%Y-%m-%d))
 
           ### Changes
 
