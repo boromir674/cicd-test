@@ -40,8 +40,11 @@ def test_workflow_and_its_jobs_are_green(
         latest_run_nb = latest_run['run_number']
     print(f"[DEBUG] Previous Workflow Run Number: {latest_run_nb}")
 
-    #### TRIGGER WORKFLOW ####
+    #### TRIGGER WORKFLOW on this Project's CI ####
+    ### EACH WORKFLOW Represent a Test Case ###
+
     response = trigger_workflow({'id': workflow_id}, token)
+
     triggered: bool = response.status_code == 204
     assert triggered, (
         "Failed to trigger the workflow, as part of the Test Case.\n"
